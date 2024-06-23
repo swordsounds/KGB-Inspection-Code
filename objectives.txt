@@ -1,16 +1,4 @@
 buttons to create:
-- extendTether
-- retractTether
-- stopTether
-
-- takePicture
-- recordVideo
-
-- Forward
-- Backward
-- Left 
-- Right
-
 - gripperOpen
 - gripperClose
 - wristin
@@ -19,6 +7,3 @@ buttons to create:
 - wristRight
 - elbowin
 - elbowout
-
-Window for video recording
-Window to display time
