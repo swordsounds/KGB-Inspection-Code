@@ -19,4 +19,6 @@ buttons to create:
 - wristRight
 - elbowin
 - elbowout
+
 Window for video recording
+Window to display time
