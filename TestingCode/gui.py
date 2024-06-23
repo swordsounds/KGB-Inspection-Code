@@ -17,13 +17,13 @@ class App(customtkinter.CTk):
         self.grid_columnconfigure((0, 1, 2), weight=1)
 
         self.textbox = customtkinter.CTkTextbox(master=self)
-        self.textbox.grid(row=0, column=0, columnspan=2, padx=20, pady=(20, 0), sticky="nsew")
+        self.textbox.grid(row=0, column=1, columnspan=2, padx=20, pady=(20, 0), sticky="nsew")
 
         self.combobox = customtkinter.CTkComboBox(master=self, values=["Sample text 1", "Text 2"])
         self.combobox.grid(row=1, column=0, padx=20, pady=20, sticky="ew")
 
         self.button = customtkinter.CTkButton(master=self, command=self.button_callback, text="Insert Text")
-        self.button.grid(row=0, column=2, padx=20, pady=20, sticky="new")
+        self.button.grid(row=0, column=0, padx=20, pady=20, sticky="new")
 
     def button_callback(self):
         self.textbox.insert("insert", self.combobox.get() + "\n")
