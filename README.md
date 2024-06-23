@@ -1,6 +1,11 @@
 # KGB-Inspection-Code
 Code repository holding all KGB Inspection Systems code for various operatable and developing ROV's.
 
-Please follow coding best practises for better documentation.
+Please follow coding patterns for better documentation:
+- Type Annotations
+- Keep functions small 
+- No more than 3 levels of nested if statements
+- Use indentations to group their respective statements
 
-sudo shutdown -h now
+Pi commands that I may forget about:
+- sudo shutdown -h now
