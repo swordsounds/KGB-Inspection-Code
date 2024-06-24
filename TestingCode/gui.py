@@ -1,5 +1,23 @@
+import cv2
 import customtkinter
+import tkinter as tk
+from PIL import Image, ImageTk
 from datetime import datetime
+
+class MyVideoCapture:
+    def __init__(self, video_source):
+        self.vid = cv2.VideoCapture(video_source)
+        self.width = self.vid.get(cv2.CAP_PROP_FRAME_WIDTH)
+        self.height = self.vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
+
+    def get_frame(self):
+        ret, frame = self.vid.read()
+        return (ret, cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+       
+    def __del__(self):
+        if self.vid.isOpened():
+            self.vid.release()
+
 
 class MyTabView(customtkinter.CTkTabview):
     def __init__(self, master):
@@ -54,15 +72,16 @@ class App(customtkinter.CTk):
 
         # time display 
 
-        self.time = customtkinter.CTkTextbox(master=self, width=100,height=10, font=("", 20))
+        self.time = customtkinter.CTkTextbox(master=self,height=10, font=("", 20))
         self.time.grid(row=0, column=0, padx=0, pady=20, sticky=None)
         self.time.insert("0.0", 'CURRENTTIME')
 
         # display placeholder 
 
-        self.video_feed = customtkinter.CTkTextbox(master=self)
+        self.video_feed = customtkinter.CTkTextbox(master=self, font=("", 25))
         self.video_feed.grid(row=1, column=3, rowspan=8, columnspan=8, padx=20, pady=(0, 20), sticky="nsew")
         self.video_feed.insert("0.0", "VIDEO_OFFLINE")
+
         # options tabs
 
         self.tab_view = MyTabView(master=self)
@@ -74,10 +93,10 @@ class App(customtkinter.CTk):
         y_window_group: int = 0
 
         self.button = customtkinter.CTkButton(master=self, command=self.max_window, text="Maximize")
-        self.button.grid(row=y_window_group, column=x_window_group, padx=180, pady=20, sticky="w")
+        self.button.grid(row=y_window_group, column=x_window_group, padx=200, pady=20, sticky="w")
 
         self.button = customtkinter.CTkButton(master=self, command=self.mini_window, text="Minimize")
-        self.button.grid(row=y_window_group, column=x_window_group, padx=(170, 0), pady=20, sticky=None)
+        self.button.grid(row=y_window_group, column=x_window_group, padx=(190, 0), pady=20, sticky=None)
 
         self.button = customtkinter.CTkButton(master=self, command=self.close_window, text="Close")
         self.button.grid(row=y_window_group, column=x_window_group, padx=10, pady=20, sticky="e")
@@ -105,16 +124,16 @@ class App(customtkinter.CTk):
         y_gripper_group: int = 4
 
         self.button = customtkinter.CTkButton(master=self, command=None, text="Claw Open")
-        self.button.grid(row=y_gripper_group, column=x_gripper_group, padx=10, pady=40, sticky="ne")
+        self.button.grid(row=y_gripper_group, column=x_gripper_group, padx=(10, 0), pady=40, sticky="ne")
         
         self.button = customtkinter.CTkButton(master=self, command=None, text="Claw Close")
-        self.button.grid(row=y_gripper_group, column=x_gripper_group, padx=10, pady=40, sticky="nw")
+        self.button.grid(row=y_gripper_group, column=x_gripper_group, padx=(0, 10), pady=40, sticky="nw")
 
         self.button = customtkinter.CTkButton(master=self, command=None, text="Claw Right")
-        self.button.grid(row=y_gripper_group, column=x_gripper_group, padx=10, pady=40, sticky="se")
+        self.button.grid(row=y_gripper_group, column=x_gripper_group, padx=(10, 0), pady=40, sticky="se")
         
         self.button = customtkinter.CTkButton(master=self, command=None, text="Claw Left")
-        self.button.grid(row=y_gripper_group, column=x_gripper_group, padx=10, pady=40, sticky="sw")
+        self.button.grid(row=y_gripper_group, column=x_gripper_group, padx=(0, 10), pady=40, sticky="sw")
 
         # arm buttons
 
@@ -128,6 +147,21 @@ class App(customtkinter.CTk):
         self.button.grid(row=y_arm_group, column=x_arm_group, padx=20, pady=0, sticky="s")
 
         self.time_start()
+
+        # main window
+        self.vid = MyVideoCapture(0)
+
+        self.canvas = tk.Canvas(self, width= self.vid.width, height= self.vid.height)
+        self.canvas.grid(row=1, column=3, rowspan=8, columnspan=8, padx=20, pady=(0, 20), sticky="nsew")
+
+        self.update()      
+    
+    def update(self):
+        ret, frame = self.vid.get_frame()        
+        if ret:
+                self.photo = ImageTk.PhotoImage(image = Image.fromarray(frame))
+                self.canvas.create_image(0, 0, image = self.photo, anchor = tk.NW)  
+        self.after(15, self.update)
 
     def time_start(self):
         current_time: str = datetime.now().strftime("%H:%M:%S")
@@ -146,9 +180,6 @@ class App(customtkinter.CTk):
     
     def close_window(self):
         self.destroy()
-
-   
-# print(help(App))
 
 if __name__ == "__main__":
     app = App()

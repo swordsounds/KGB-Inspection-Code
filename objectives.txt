@@ -1,9 +1,3 @@
 buttons to create:
-- gripperOpen
-- gripperClose
 - wristin
 - wristout
-- wristLeft
-- wristRight
-- elbowin
-- elbowout

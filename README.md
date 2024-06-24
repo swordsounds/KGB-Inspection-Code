@@ -5,7 +5,7 @@ Please follow coding patterns for better documentation:
 - Type Annotations
 - Keep functions small 
 - No more than 3 levels of nested if statements
-- Use indentations to group their respective statements
+- Use indentations to group respective statements
 
-Pi commands that I may forget about:
+sudo commands that I may forget about:
 - sudo shutdown -h now
