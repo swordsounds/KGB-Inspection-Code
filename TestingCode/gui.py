@@ -13,7 +13,6 @@ class MyVideoCapture:
     def get_frame(self):
         ret, frame = self.vid.read()
         return (ret, cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-       
     def __del__(self):
         if self.vid.isOpened():
             self.vid.release()
@@ -149,19 +148,22 @@ class App(customtkinter.CTk):
         self.time_start()
 
         # main window
-        self.vid = MyVideoCapture(0)
+        self.vid = MyVideoCapture(1)
 
         self.canvas = tk.Canvas(self, width= self.vid.width, height= self.vid.height)
         self.canvas.grid(row=1, column=3, rowspan=8, columnspan=8, padx=20, pady=(0, 20), sticky="nsew")
 
         self.update()      
-    
+
     def update(self):
-        ret, frame = self.vid.get_frame()        
-        if ret:
-                self.photo = ImageTk.PhotoImage(image = Image.fromarray(frame))
-                self.canvas.create_image(0, 0, image = self.photo, anchor = tk.NW)  
-        self.after(15, self.update)
+        try:
+            ret, frame = self.vid.get_frame()        
+            if ret:
+                    self.photo = ImageTk.PhotoImage(image = Image.fromarray(frame))
+                    self.canvas.create_image(0, 0, image = self.photo, anchor = tk.NW)  
+            self.after(15, self.update)
+        except Exception as e:
+            print(e)
 
     def time_start(self):
         current_time: str = datetime.now().strftime("%H:%M:%S")
