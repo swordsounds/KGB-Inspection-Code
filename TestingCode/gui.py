@@ -7,24 +7,27 @@ from datetime import datetime
 class MyVideoCapture:
     def __init__(self, video_source: int) -> None:
         self.vid = cv2.VideoCapture(video_source)
-        self.rec = cv2.VideoWriter(f"video{rec_counter}.avi", cv2.VideoWriter_fourcc(*'XVID'), 30.0, (1920, 1080))
+        self.rec = None
         self.width = self.vid.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
         self.height = self.vid.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 
     def get_frame(self) -> tuple[bool, list[int]]:
         ret, frame = self.vid.read()
+        if rec_toggle:
+                self.rec.write(frame)
         dim = (1200, 1000)
         resized = cv2.resize(frame, dim, interpolation = cv2.INTER_AREA)
-
-        if rec_toggle:
-            self.rec.write(frame)
-
         return (ret, cv2.cvtColor(resized, cv2.COLOR_BGR2RGB))
     
+    def get_rec(self):
+        self.rec = cv2.VideoWriter(f"video{rec_counter}.avi", cv2.VideoWriter_fourcc(*'XVID'), 30.0, (1920, 1080))
+        return self.rec
+
     def get_pic(self):
         ret, frame = self.vid.read()
-        img_name = f'opencv_frame_{img_counter}'
-        cv2.imwrite(f"{img_name}.png", frame)
+        if ret:
+            img_name = f'opencv_frame_{img_counter}'
+            cv2.imwrite(f"{img_name}.png", frame)
     
     def __del__(self):
         if self.vid.isOpened():
@@ -193,7 +196,7 @@ class App(customtkinter.CTk):
 
     def program_take_recording(self):
         global rec_toggle, rec_counter
-        self.rec = cv2.VideoWriter(f"video{rec_counter}.avi", cv2.VideoWriter_fourcc(*'XVID'), 30.0, (1920, 1080))
+        self.vid.get_rec()
         rec_counter += 1
         rec_toggle = True
 
