@@ -1,41 +1,44 @@
-# import os
+## importing the python open cv library
 import cv2
 
+# intialize the webcam and pass a constant which is 0
+cam = cv2.VideoCapture(0)
 
-filename = 'video.avi'
+# title of the app
+cv2.namedWindow('python webcam screenshot app')
 
-# Standard Video Dimensions Sizes
-STD_DIMENSIONS =  {
-    "480p": (640, 480),
-    "720p": (1280, 720),
-    "1080p": (1920, 1080),
-    "4k": (3840, 2160),
-}
+# let's assume the number of images gotten is 0
+img_counter = 0
 
-
-# Video Encoding, might require additional installs
-# Types of Codes: http://www.fourcc.org/codecs.php
-VIDEO_TYPE = {
-    'avi': cv2.VideoWriter_fourcc(*'XVID'),
-    # 'mp4': cv2.VideoWriter_fourcc(*'H264'),
-    # 'mp4': cv2.VideoWriter_fourcc(*'XVID'),
-}
-
-
-cap = cv2.VideoCapture(0)
-cap.set(3, 1920)
-cap.set(4, 1080)
-out = cv2.VideoWriter(filename, cv2.VideoWriter_fourcc(*'XVID'), 30.0, (1920, 1080))
-
+# while loop
 while True:
-    ret, frame = cap.read()
-    # print(out.write(frame))
-    out.write(frame)
-    cv2.imshow('frame',frame)
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+    # intializing the frame, ret
+    ret, frame = cam.read()
+    # if statement
+    if not ret:
+        print('failed to grab frame')
         break
+    # the frame will show with the title of test
+    cv2.imshow('test', frame)
+    #to get continuous live video feed from my laptops webcam
+    k  = cv2.waitKey(1)
+    # if the escape key is been pressed, the app will stop
+    if k%256 == 27:
+        print('escape hit, closing the app')
+        break
+    # if the spacebar key is been pressed
+    # screenshots will be taken
+    elif k%256  == 32:
+        # the format for storing the images scrreenshotted
+        img_name = f'opencv_frame_{img_counter}'
+        # saves the image as a png file
+        cv2.imwrite(f"{img_name}.png", frame)
+        print('screenshot taken')
+        # the number of images automaticallly increases by 1
+        img_counter += 1
 
+# release the camera
+cam.release()
 
-cap.release()
-out.release()
-cv2.destroyAllWindows()
+# stops the camera window
+cam.destoryAllWindows()

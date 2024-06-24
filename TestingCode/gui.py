@@ -7,7 +7,7 @@ from datetime import datetime
 class MyVideoCapture:
     def __init__(self, video_source: int) -> None:
         self.vid = cv2.VideoCapture(video_source)
-        self.rec = cv2.VideoWriter("video.avi", cv2.VideoWriter_fourcc(*'XVID'), 30.0, (1920, 1080))
+        self.rec = cv2.VideoWriter(f"video{rec_counter}.avi", cv2.VideoWriter_fourcc(*'XVID'), 30.0, (1920, 1080))
         self.width = self.vid.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
         self.height = self.vid.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 
@@ -15,8 +15,16 @@ class MyVideoCapture:
         ret, frame = self.vid.read()
         dim = (1200, 1000)
         resized = cv2.resize(frame, dim, interpolation = cv2.INTER_AREA)
-        self.rec.write(frame)
+
+        if rec_toggle:
+            self.rec.write(frame)
+
         return (ret, cv2.cvtColor(resized, cv2.COLOR_BGR2RGB))
+    
+    def get_pic(self):
+        ret, frame = self.vid.read()
+        img_name = f'opencv_frame_{img_counter}'
+        cv2.imwrite(f"{img_name}.png", frame)
     
     def __del__(self):
         if self.vid.isOpened():
@@ -44,7 +52,12 @@ class MyTabView(customtkinter.CTkTabview):
 
 
 class App(customtkinter.CTk):
+
     customtkinter.set_appearance_mode("dark")
+    global rec_toggle, img_counter, rec_counter
+    rec_toggle = False
+    rec_counter = 0
+    img_counter = 0
 
     def __init__(self):
         super().__init__()
@@ -137,13 +150,13 @@ class App(customtkinter.CTk):
         # video buttons
 
         self.button = customtkinter.CTkButton(master=self, command=self.program_take_recording, text="Rec.")
-        self.button.grid(row=0, column=0, padx=20, pady=20, sticky="ew")
+        self.button.grid(row=6, column=2, padx=0, pady=0, sticky="e")
 
-        self.button = customtkinter.CTkButton(master=self, command=None, text="Stop Rec.")
-        self.button.grid(row=1, column=0, padx=20, pady=20, sticky="ew")
+        self.button = customtkinter.CTkButton(master=self, command=self.program_stop_recording, text="Stop Rec.")
+        self.button.grid(row=6, column=2, padx=0, pady=0, sticky="w")
 
-        self.button = customtkinter.CTkButton(master=self, command=None, text="Take Pic.")
-        self.button.grid(row=2, column=0, padx=20, pady=20, sticky="ew")
+        self.button = customtkinter.CTkButton(master=self, command=self.program_take_picture, text="Take Pic.")
+        self.button.grid(row=6, column=2, padx=20, pady=(0, 60), sticky="s")
 
         # video device 
 
@@ -163,7 +176,6 @@ class App(customtkinter.CTk):
         except Exception as e:
             print(e)
 
-
     def time_start(self):
         current_time: str = datetime.now().strftime("%H:%M:%S")
         self.time.delete("0.0", "end")
@@ -180,25 +192,28 @@ class App(customtkinter.CTk):
         self.destroy()
 
     def program_take_recording(self):
-        # ret, frame = self.vid.get_frame() 
-        # self.rec.write(frame)
-        return
+        global rec_toggle, rec_counter
+        self.rec = cv2.VideoWriter(f"video{rec_counter}.avi", cv2.VideoWriter_fourcc(*'XVID'), 30.0, (1920, 1080))
+        rec_counter += 1
+        rec_toggle = True
 
-    
     def program_stop_recording(self):
-        self.rec.release()
+        global rec_toggle
+        rec_toggle = False
     
     def program_take_picture(self):
-        return
+        global img_counter
+        img_counter += 1
+        self.vid.get_pic()
     
     def tether_extend(self):
-        return
+        print("extending tether")
     
     def tether_stop(self):
-        return
+        print("tether stopped")
     
     def tether_retract(self):
-        return
+        print("retracting tether")
     
     def crawler_forward(self):
         print("Crawler forward")
