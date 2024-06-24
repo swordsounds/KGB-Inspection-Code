@@ -1,3 +1,10 @@
 buttons to create:
 - wristin
 - wristout
+
+Make second cv frame fit 
+other monitor
+
+Multi camera support
+
+Make old code work for Pi5's
