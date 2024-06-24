@@ -7,12 +7,15 @@ from datetime import datetime
 class MyVideoCapture:
     def __init__(self, video_source):
         self.vid = cv2.VideoCapture(video_source)
-        self.width = self.vid.get(cv2.CAP_PROP_FRAME_WIDTH)
-        self.height = self.vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
+        self.width = self.vid.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+        self.height = self.vid.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 
     def get_frame(self):
         ret, frame = self.vid.read()
-        return (ret, cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+        dim = (1200, 1000)
+        resized = cv2.resize(frame, dim, interpolation = cv2.INTER_AREA)
+        return (ret, cv2.cvtColor(resized, cv2.COLOR_BGR2RGB))
+    
     def __del__(self):
         if self.vid.isOpened():
             self.vid.release()
@@ -74,12 +77,7 @@ class App(customtkinter.CTk):
         self.time = customtkinter.CTkTextbox(master=self,height=10, font=("", 20))
         self.time.grid(row=0, column=0, padx=0, pady=20, sticky=None)
         self.time.insert("0.0", 'CURRENTTIME')
-
-        # display placeholder 
-
-        self.video_feed = customtkinter.CTkTextbox(master=self, font=("", 25))
-        self.video_feed.grid(row=1, column=3, rowspan=8, columnspan=8, padx=20, pady=(0, 20), sticky="nsew")
-        self.video_feed.insert("0.0", "VIDEO_OFFLINE")
+        self.time_start()
 
         # options tabs
 
@@ -145,14 +143,10 @@ class App(customtkinter.CTk):
         self.button = customtkinter.CTkButton(master=self, command=None, text="Retract Arm")
         self.button.grid(row=y_arm_group, column=x_arm_group, padx=20, pady=0, sticky="s")
 
-        self.time_start()
 
-        # main window
-        self.vid = MyVideoCapture(1)
-
-        self.canvas = tk.Canvas(self, width= self.vid.width, height= self.vid.height)
+        self.vid = MyVideoCapture(0)
+        self.canvas = tk.Canvas(self, width=self.vid.width, height=self.vid.height)
         self.canvas.grid(row=1, column=3, rowspan=8, columnspan=8, padx=20, pady=(0, 20), sticky="nsew")
-
         self.update()      
 
     def update(self):
