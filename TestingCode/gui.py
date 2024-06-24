@@ -5,39 +5,30 @@ from PIL import Image, ImageTk
 from datetime import datetime
 
 class MyVideoCapture:
-    def __init__(self, video_source):
+    def __init__(self, video_source: int) -> None:
         self.vid = cv2.VideoCapture(video_source)
+        self.rec = cv2.VideoWriter("video.avi", cv2.VideoWriter_fourcc(*'XVID'), 30.0, (1920, 1080))
         self.width = self.vid.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
         self.height = self.vid.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 
-    def get_frame(self):
+    def get_frame(self) -> tuple[bool, list[int]]:
         ret, frame = self.vid.read()
         dim = (1200, 1000)
         resized = cv2.resize(frame, dim, interpolation = cv2.INTER_AREA)
+        self.rec.write(frame)
         return (ret, cv2.cvtColor(resized, cv2.COLOR_BGR2RGB))
     
     def __del__(self):
         if self.vid.isOpened():
+            self.rec.release()
             self.vid.release()
-
 
 class MyTabView(customtkinter.CTkTabview):
     def __init__(self, master):
         super().__init__(master)
 
-        self.add("Video/Pic")
+        # self.add("Video/Pic")
         self.add("Tether")
-
-        # video buttons
-
-        self.button = customtkinter.CTkButton(master=self.tab("Video/Pic"), command=None, text="Rec.")
-        self.button.grid(row=0, column=0, padx=20, pady=20, sticky="ew")
-
-        self.button = customtkinter.CTkButton(master=self.tab("Video/Pic"), command=None, text="Stop Rec.")
-        self.button.grid(row=1, column=0, padx=20, pady=20, sticky="ew")
-
-        self.button = customtkinter.CTkButton(master=self.tab("Video/Pic"), command=None, text="Take Pic.")
-        self.button.grid(row=2, column=0, padx=20, pady=20, sticky="ew")
 
         # tether buttons
 
@@ -103,16 +94,16 @@ class App(customtkinter.CTk):
         x_movement_group: int = 2
         y_movement_group: int = 4
 
-        self.button = customtkinter.CTkButton(master=self, command=self.button_callback, text="Forw.")
+        self.button = customtkinter.CTkButton(master=self, command=self.crawler_forward, text="Forw.")
         self.button.grid(row=y_movement_group, column=x_movement_group, padx=10, pady=30, sticky='n')
 
-        self.button = customtkinter.CTkButton(master=self, command=self.button_callback, text="Right")
+        self.button = customtkinter.CTkButton(master=self, command=self.crawler_right, text="Right")
         self.button.grid(row=y_movement_group, column=x_movement_group, padx=0, pady=30, sticky='e')
 
-        self.button = customtkinter.CTkButton(master=self, command=self.button_callback, text="Back")
+        self.button = customtkinter.CTkButton(master=self, command=self.crawler_backward, text="Back")
         self.button.grid(row=y_movement_group, column=x_movement_group, padx=10, pady=30, sticky='s')
 
-        self.button = customtkinter.CTkButton(master=self, command=self.button_callback, text="Left")
+        self.button = customtkinter.CTkButton(master=self, command=self.crawler_left, text="Left")
         self.button.grid(row=y_movement_group, column=x_movement_group, padx=0, pady=30, sticky='w')
 
         # gripper buttons
@@ -120,16 +111,16 @@ class App(customtkinter.CTk):
         x_gripper_group: int = 2
         y_gripper_group: int = 4
 
-        self.button = customtkinter.CTkButton(master=self, command=None, text="Claw Open")
+        self.button = customtkinter.CTkButton(master=self, command=self.gripper_open, text="Claw Open")
         self.button.grid(row=y_gripper_group, column=x_gripper_group, padx=(10, 0), pady=40, sticky="ne")
         
-        self.button = customtkinter.CTkButton(master=self, command=None, text="Claw Close")
+        self.button = customtkinter.CTkButton(master=self, command=self.gripper_close, text="Claw Close")
         self.button.grid(row=y_gripper_group, column=x_gripper_group, padx=(0, 10), pady=40, sticky="nw")
 
-        self.button = customtkinter.CTkButton(master=self, command=None, text="Claw Right")
+        self.button = customtkinter.CTkButton(master=self, command=self.gripper_right, text="Claw Right")
         self.button.grid(row=y_gripper_group, column=x_gripper_group, padx=(10, 0), pady=40, sticky="se")
         
-        self.button = customtkinter.CTkButton(master=self, command=None, text="Claw Left")
+        self.button = customtkinter.CTkButton(master=self, command=self.gripper_left, text="Claw Left")
         self.button.grid(row=y_gripper_group, column=x_gripper_group, padx=(0, 10), pady=40, sticky="sw")
 
         # arm buttons
@@ -137,36 +128,47 @@ class App(customtkinter.CTk):
         x_arm_group: int = 2
         y_arm_group: int = 4
 
-        self.button = customtkinter.CTkButton(master=self, command=None, text="Extend Arm")
+        self.button = customtkinter.CTkButton(master=self, command=self.arm_extend, text="Extend Arm")
         self.button.grid(row=y_arm_group, column=x_arm_group, padx=20, pady=0, sticky="n")
 
-        self.button = customtkinter.CTkButton(master=self, command=None, text="Retract Arm")
+        self.button = customtkinter.CTkButton(master=self, command=self.arm_retract, text="Retract Arm")
         self.button.grid(row=y_arm_group, column=x_arm_group, padx=20, pady=0, sticky="s")
+        
+        # video buttons
 
+        self.button = customtkinter.CTkButton(master=self, command=self.program_take_recording, text="Rec.")
+        self.button.grid(row=0, column=0, padx=20, pady=20, sticky="ew")
+
+        self.button = customtkinter.CTkButton(master=self, command=None, text="Stop Rec.")
+        self.button.grid(row=1, column=0, padx=20, pady=20, sticky="ew")
+
+        self.button = customtkinter.CTkButton(master=self, command=None, text="Take Pic.")
+        self.button.grid(row=2, column=0, padx=20, pady=20, sticky="ew")
+
+        # video device 
 
         self.vid = MyVideoCapture(0)
+
         self.canvas = tk.Canvas(self, width=self.vid.width, height=self.vid.height)
         self.canvas.grid(row=1, column=3, rowspan=8, columnspan=8, padx=20, pady=(0, 20), sticky="nsew")
-        self.update()      
+        self.video_update()      
 
-    def update(self):
+    def video_update(self):
         try:
             ret, frame = self.vid.get_frame()        
             if ret:
                     self.photo = ImageTk.PhotoImage(image = Image.fromarray(frame))
                     self.canvas.create_image(0, 0, image = self.photo, anchor = tk.NW)  
-            self.after(15, self.update)
+            self.after(15, self.video_update)
         except Exception as e:
             print(e)
+
 
     def time_start(self):
         current_time: str = datetime.now().strftime("%H:%M:%S")
         self.time.delete("0.0", "end")
         self.time.insert("0.0", current_time)
         self.after(1000, self.time_start)
-
-    def button_callback(self):
-        print(self.state())
 
     def max_window(self):
         self.wm_attributes("-fullscreen", "True")
@@ -176,6 +178,57 @@ class App(customtkinter.CTk):
     
     def close_window(self):
         self.destroy()
+
+    def program_take_recording(self):
+        # ret, frame = self.vid.get_frame() 
+        # self.rec.write(frame)
+        return
+
+    
+    def program_stop_recording(self):
+        self.rec.release()
+    
+    def program_take_picture(self):
+        return
+    
+    def tether_extend(self):
+        return
+    
+    def tether_stop(self):
+        return
+    
+    def tether_retract(self):
+        return
+    
+    def crawler_forward(self):
+        print("Crawler forward")
+
+    def crawler_right(self):
+        print("Crawler right")
+
+    def crawler_backward(self):
+        print("Crawler backwards")
+
+    def crawler_left(self):
+        print("Crawler left")
+    
+    def gripper_open(self):
+        print("gripper opened")
+
+    def gripper_close(self):
+        print("gripper closed")
+
+    def gripper_left(self):
+        print("gripper wrist left")
+        
+    def gripper_right(self):
+        print("gripper wrist right")
+    
+    def arm_extend(self):
+        print("arm extended")
+
+    def arm_retract(self):
+        print("arm retracted")
 
 if __name__ == "__main__":
     app = App()
