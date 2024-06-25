@@ -5,12 +5,15 @@ from PIL import Image, ImageTk
 from datetime import datetime
 
 class MyVideoCapture:
+
+    res_width, res_height = (1280, 720)
+
     def __init__(self, video_source: int) -> None:
         self.vid = cv2.VideoCapture(video_source)
         self.rec = None
-        self.width = self.vid.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-        self.height = self.vid.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
-        self.expo = self.vid.set(cv2.CAP_PROP_EXPOSURE, -3.0)
+        self.width = self.vid.set(cv2.CAP_PROP_FRAME_WIDTH, self.res_width)
+        self.height = self.vid.set(cv2.CAP_PROP_FRAME_HEIGHT, self.res_height)
+        self.expo = self.vid.set(cv2.CAP_PROP_EXPOSURE, -4.0) #set to -60/0 for pi
 
     def get_frame(self) -> tuple[bool, list[int]]:
         ret, frame = self.vid.read()
@@ -23,8 +26,8 @@ class MyVideoCapture:
     def get_rec(self):
         file_name = f"video{rec_counter}.avi"
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        fps = 30.0
-        res = (1920, 1080)
+        fps = 15.0
+        res = (self.res_width, self.res_height)
         self.rec = cv2.VideoWriter(file_name, fourcc, fps, res)
         return self.rec
 
@@ -101,9 +104,6 @@ class GripperButtonGroup(customtkinter.CTkFrame):
         self.label.grid(row=0, column=0, padx=20)
 
         # gripper buttons
-
-        x_gripper_group: int = 2
-        y_gripper_group: int = 4
 
         self.button = customtkinter.CTkButton(master=self, command=self.gripper_open, text="Claw Open")
         self.button.grid(row=1, column=0, padx=20, pady=40)
@@ -231,7 +231,7 @@ class App(customtkinter.CTk):
 
         # video device 
 
-        self.vid = MyVideoCapture(1)
+        self.vid = MyVideoCapture(0)
 
         self.canvas = tk.Canvas(self, width=self.vid.width, height=self.vid.height)
         self.canvas.grid(row=1, column=2, rowspan=20, columnspan=20,padx=20, pady=20,sticky="nsew")
