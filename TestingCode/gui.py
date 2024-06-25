@@ -6,13 +6,14 @@ from datetime import datetime
 
 class MyVideoCapture:
 
-    res_width, res_height = (1280, 720)
+    res_width, res_height = (2048, 1536)
 
     def __init__(self, video_source: int) -> None:
         self.vid = cv2.VideoCapture(video_source)
         self.rec = None
         self.width = self.vid.set(cv2.CAP_PROP_FRAME_WIDTH, self.res_width)
         self.height = self.vid.set(cv2.CAP_PROP_FRAME_HEIGHT, self.res_height)
+        self.fps = self.vid.set(cv2.CAP_PROP_FPS, 30)
         self.expo = self.vid.set(cv2.CAP_PROP_EXPOSURE, -4.0) #set to -60/0 for pi
 
     def get_frame(self) -> tuple[bool, list[int]]:
@@ -20,10 +21,10 @@ class MyVideoCapture:
         if rec_toggle:
                 self.rec.write(frame)
         dim = (1200, 1000)
-        resized = cv2.resize(frame, dim, interpolation = cv2.INTER_AREA)
+        resized = cv2.resize(frame, dim, interpolation=cv2.INTER_AREA)
         return (ret, cv2.cvtColor(resized, cv2.COLOR_BGR2RGB))
     
-    def get_rec(self):
+    def get_rec(self) -> object:
         file_name = f"video{rec_counter}.avi"
         fourcc = cv2.VideoWriter_fourcc(*'FMP4')
         fps = 5.0
@@ -44,7 +45,6 @@ class MyVideoCapture:
                 self.rec.release()
             except Exception as e:
                 print(e)
-
 
 class TetherButtonGroup(customtkinter.CTkFrame):
     def __init__(self, master):
@@ -74,6 +74,7 @@ class TetherButtonGroup(customtkinter.CTkFrame):
     
     def tether_retract(self):
         print("retracting tether")
+
 class MovementButtonGroup(customtkinter.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
@@ -115,21 +116,21 @@ class GripperButtonGroup(customtkinter.CTkFrame):
         super().__init__(master)
 
         self.label = customtkinter.CTkLabel(self, text="Claw")
-        self.label.grid(row=0, column=0, padx=20)
+        self.label.grid(row=0, column=0, pady=20)
 
         # gripper buttons
 
         self.button = customtkinter.CTkButton(master=self, command=self.gripper_open, text="Claw Open")
-        self.button.grid(row=1, column=0, padx=20, pady=40)
+        self.button.grid(row=1, column=0, padx=20, pady=20)
         
         self.button = customtkinter.CTkButton(master=self, command=self.gripper_close, text="Claw Close")
-        self.button.grid(row=1, column=1, padx=20, pady=40)
+        self.button.grid(row=1, column=1, padx=20, pady=20)
 
         self.button = customtkinter.CTkButton(master=self, command=self.gripper_right, text="Claw Right")
-        self.button.grid(row=1, column=2, padx=20, pady=40)
+        self.button.grid(row=1, column=2, padx=20, pady=20)
         
         self.button = customtkinter.CTkButton(master=self, command=self.gripper_left, text="Claw Left")
-        self.button.grid(row=1, column=3, padx=20, pady=40)
+        self.button.grid(row=1, column=3, padx=20, pady=20)
 
     def gripper_open(self):
         print("gripper opened")
@@ -144,11 +145,11 @@ class GripperButtonGroup(customtkinter.CTkFrame):
         print("gripper wrist right")
 
 class ArmButtonGroup(customtkinter.CTkFrame):
-    def __init__(self, master, **kwargs):
-        super().__init__(master, **kwargs)
+    def __init__(self, master):
+        super().__init__(master)
 
         self.label = customtkinter.CTkLabel(self, text="Arm")
-        self.label.grid(row=0, column=0, padx=20)
+        self.label.grid(row=0, column=0, pady=20)
 
         # arm buttons
 
@@ -164,7 +165,6 @@ class ArmButtonGroup(customtkinter.CTkFrame):
     def arm_retract(self):
         print("arm retracted")
 
-
 class App(customtkinter.CTk):
 
     customtkinter.set_appearance_mode("dark")
@@ -178,14 +178,13 @@ class App(customtkinter.CTk):
 
         width = self.winfo_screenwidth()
         height = self.winfo_screenheight()
-        geometry = str(width) + "x" + str(height)
-        self.geometry(geometry)
+        self.geometry("{}x{}".format(width, height))
 
         self.title("Control Panel")
         self.wm_iconbitmap(default=None)
         self.minsize(300, 200)
 
-        # 8x8 grid system
+        # 20x20 grid system
 
         self.grid_rowconfigure(tuple(range(21)), weight=1)
         self.grid_columnconfigure(tuple(range(21)), weight=1)
@@ -243,7 +242,7 @@ class App(customtkinter.CTk):
 
         # video device 
 
-        self.vid = MyVideoCapture(1)
+        self.vid = MyVideoCapture(0)
 
         self.canvas = tk.Canvas(self, width=self.vid.width, height=self.vid.height)
         self.canvas.grid(row=1, column=2, rowspan=20, columnspan=20,padx=20, pady=20,sticky="nsew")

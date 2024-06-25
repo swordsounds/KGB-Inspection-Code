@@ -2,6 +2,8 @@ buttons to create:
 - wristin
 - wristout
 
+use os to make unique filenames, and get the path
+
 Make second cv frame fit 
 other monitor
 
