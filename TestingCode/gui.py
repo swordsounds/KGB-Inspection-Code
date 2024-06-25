@@ -6,21 +6,21 @@ from datetime import datetime
 
 class MyVideoCapture:
 
-    res_width, res_height = (2048, 1536)
+    res_width, res_height = (2048, 1536) #highest on pi is 1920, 1080
 
     def __init__(self, video_source: int) -> None:
         self.vid = cv2.VideoCapture(video_source)
         self.rec = None
         self.width = self.vid.set(cv2.CAP_PROP_FRAME_WIDTH, self.res_width)
         self.height = self.vid.set(cv2.CAP_PROP_FRAME_HEIGHT, self.res_height)
-        self.fps = self.vid.set(cv2.CAP_PROP_FPS, 30)
+        self.fps = self.vid.set(cv2.CAP_PROP_FPS, 30.0) #must use 10.0 on pi
         self.expo = self.vid.set(cv2.CAP_PROP_EXPOSURE, -4.0) #set to -60/0 for pi
 
     def get_frame(self) -> tuple[bool, list[int]]:
         ret, frame = self.vid.read()
         if rec_toggle:
                 self.rec.write(frame)
-        dim = (1200, 1000)
+        dim = (1100, 720)
         resized = cv2.resize(frame, dim, interpolation=cv2.INTER_AREA)
         return (ret, cv2.cvtColor(resized, cv2.COLOR_BGR2RGB))
     
@@ -32,13 +32,13 @@ class MyVideoCapture:
         self.rec = cv2.VideoWriter(file_name, fourcc, fps, res)
         return self.rec
 
-    def get_pic(self):
+    def get_pic(self) -> None:
         ret, frame = self.vid.read()
         if ret:
             img_name = f'opencv_frame_{img_counter}'
             cv2.imwrite(f"{img_name}.png", frame)
     
-    def __del__(self):
+    def __del__(self) -> None:
         if self.vid.isOpened():
             try:
                 self.vid.release()
@@ -57,14 +57,14 @@ class TetherButtonGroup(customtkinter.CTkFrame):
         self.label = customtkinter.CTkLabel(self, text="Tether")
         self.label.grid(row=0, column=0, pady=20)
 
-        self.button = customtkinter.CTkButton(master=self, command=None, text="Extend Tether")
-        self.button.grid(row=1, column=0, padx=20, pady=20, sticky="ew")
+        self.button = customtkinter.CTkButton(master=self, command=self.tether_extend, text="Extend Tether")
+        self.button.grid(row=1, column=0, padx=20, pady=20)
 
-        self.button = customtkinter.CTkButton(master=self, command=None, text="Stop Tether")
-        self.button.grid(row=1, column=1, padx=20, pady=20, sticky="ew")
+        self.button = customtkinter.CTkButton(master=self, command=self.tether_stop, text="Stop Tether")
+        self.button.grid(row=1, column=1, padx=20, pady=20)
 
-        self.button = customtkinter.CTkButton(master=self, command=None, text="Retract Tether")
-        self.button.grid(row=1, column=2, padx=20, pady=20, sticky="ew")
+        self.button = customtkinter.CTkButton(master=self, command=self.tether_retract, text="Retract Tether")
+        self.button.grid(row=1, column=2, padx=20, pady=20)
 
     def tether_extend(self):
         print("extending tether")
@@ -88,16 +88,16 @@ class MovementButtonGroup(customtkinter.CTkFrame):
         self.label.grid(row=0, column=0, pady=20)
 
         self.button = customtkinter.CTkButton(master=self, command=self.crawler_forward, text="Forw.")
-        self.button.grid(row=1, column=0, padx=20, pady=20, sticky="n")
+        self.button.grid(row=1, column=0, padx=20, pady=20)
 
         self.button = customtkinter.CTkButton(master=self, command=self.crawler_right, text="Right")
-        self.button.grid(row=1, column=1, padx=20, pady=20, sticky="e")
+        self.button.grid(row=1, column=1, padx=20, pady=20)
 
         self.button = customtkinter.CTkButton(master=self, command=self.crawler_backward, text="Back")
-        self.button.grid(row=1, column=2, padx=20, pady=20, sticky="s")
+        self.button.grid(row=1, column=2, padx=20, pady=20)
 
         self.button = customtkinter.CTkButton(master=self, command=self.crawler_left, text="Left")
-        self.button.grid(row=1, column=3, padx=20, pady=20, sticky="w")
+        self.button.grid(row=1, column=3, padx=20, pady=20)
 
     def crawler_forward(self):
         print("Crawler forward")
@@ -196,36 +196,36 @@ class App(customtkinter.CTk):
         self.time.insert("0.0", 'CURRENT_TIME')
         self.time_start()
 
-        # tether buttons
-
-        self.frame = TetherButtonGroup(master=self)
-        self.frame.grid(row=2, column=0, columnspan=3, padx=(20, 0), pady=20, sticky="w")
-
         # window buttons
 
         self.button = customtkinter.CTkButton(master=self, command=self.max_window, text="Maximize")
         self.button.grid(row=0, column=18, padx=(200, 0), pady=20, sticky="e")
 
         self.button = customtkinter.CTkButton(master=self, command=self.mini_window, text="Minimize")
-        self.button.grid(row=0, column=19, padx=(40, 0), pady=20, sticky=None)
+        self.button.grid(row=0, column=19, padx=(40, 0), pady=20)
 
         self.button = customtkinter.CTkButton(master=self, command=self.close_window, text="Close")
         self.button.grid(row=0, column=20, padx=(0, 20), pady=20, sticky="e")
-        
+
+        # tether buttons
+
+        self.frame = TetherButtonGroup(master=self)
+        self.frame.grid(row=2, column=0, columnspan=1, padx=(20, 0), pady=20, sticky="ew")
+
         # movement frame
 
         self.frame = MovementButtonGroup(master=self)
-        self.frame.grid(row=3, column=0, columnspan=2, padx=(20, 0), pady=20, sticky="w")
+        self.frame.grid(row=3, column=0, columnspan=2, padx=(20, 0), pady=20, sticky="ew")
 
         # gripper frame
 
         self.frame = GripperButtonGroup(master=self)
-        self.frame.grid(row=4, column=0, columnspan=2, padx=(20, 0), pady=20, sticky="w")
+        self.frame.grid(row=4, column=0, columnspan=2, padx=(20, 0), pady=20, sticky="ew")
 
         # arm frame
 
         self.frame = ArmButtonGroup(master=self)
-        self.frame.grid(row=5, column=0, columnspan=3, padx=(20, 0), pady=20, sticky="w")
+        self.frame.grid(row=5, column=0, padx=(20, 0), pady=20, sticky="w")
         
        # video buttons
         self.label = customtkinter.CTkLabel(self, text="Video Settings")
@@ -242,10 +242,9 @@ class App(customtkinter.CTk):
 
         # video device 
 
-        self.vid = MyVideoCapture(0)
-
+        self.vid = MyVideoCapture(1)
         self.canvas = tk.Canvas(self, width=self.vid.width, height=self.vid.height)
-        self.canvas.grid(row=1, column=2, rowspan=20, columnspan=20,padx=20, pady=20,sticky="nsew")
+        self.canvas.grid(row=1, column=2, rowspan=4, columnspan=20,padx=20, pady=20,sticky="nsew")
         self.video_update()      
 
     def video_update(self):
