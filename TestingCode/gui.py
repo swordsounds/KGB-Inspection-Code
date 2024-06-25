@@ -25,8 +25,8 @@ class MyVideoCapture:
     
     def get_rec(self):
         file_name = f"video{rec_counter}.avi"
-        fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        fps = 15.0
+        fourcc = cv2.VideoWriter_fourcc(*'FMP4')
+        fps = 5.0
         res = (self.res_width, self.res_height)
         self.rec = cv2.VideoWriter(file_name, fourcc, fps, res)
         return self.rec
@@ -39,27 +39,41 @@ class MyVideoCapture:
     
     def __del__(self):
         if self.vid.isOpened():
-            self.rec.release()
-            self.vid.release()
+            try:
+                self.vid.release()
+                self.rec.release()
+            except Exception as e:
+                print(e)
 
-class MyTabView(customtkinter.CTkTabview):
+
+class TetherButtonGroup(customtkinter.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
 
-        # self.add("Video/Pic")
-        self.add("Tether")
-
         # tether buttons
+        self.grid_rowconfigure(tuple(range(9)), weight=1)
+        self.grid_columnconfigure(tuple(range(9)), weight=1)
 
-        self.button = customtkinter.CTkButton(master=self.tab("Tether"), command=None, text="Extend Tether")
-        self.button.grid(row=0, column=0, padx=20, pady=20, sticky="ew")
+        self.label = customtkinter.CTkLabel(self, text="Tether")
+        self.label.grid(row=0, column=0, pady=20)
 
-        self.button = customtkinter.CTkButton(master=self.tab("Tether"), command=None, text="Stop Tether")
+        self.button = customtkinter.CTkButton(master=self, command=None, text="Extend Tether")
         self.button.grid(row=1, column=0, padx=20, pady=20, sticky="ew")
 
-        self.button = customtkinter.CTkButton(master=self.tab("Tether"), command=None, text="Retract Tether")
-        self.button.grid(row=2, column=0, padx=20, pady=20, sticky="ew")
+        self.button = customtkinter.CTkButton(master=self, command=None, text="Stop Tether")
+        self.button.grid(row=1, column=1, padx=20, pady=20, sticky="ew")
 
+        self.button = customtkinter.CTkButton(master=self, command=None, text="Retract Tether")
+        self.button.grid(row=1, column=2, padx=20, pady=20, sticky="ew")
+
+    def tether_extend(self):
+        print("extending tether")
+    
+    def tether_stop(self):
+        print("tether stopped")
+    
+    def tether_retract(self):
+        print("retracting tether")
 class MovementButtonGroup(customtkinter.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
@@ -73,7 +87,7 @@ class MovementButtonGroup(customtkinter.CTkFrame):
         self.label.grid(row=0, column=0, pady=20)
 
         self.button = customtkinter.CTkButton(master=self, command=self.crawler_forward, text="Forw.")
-        self.button.grid(row=1, column=0, padx=20, pady=20, sticky="ns")
+        self.button.grid(row=1, column=0, padx=20, pady=20, sticky="n")
 
         self.button = customtkinter.CTkButton(master=self, command=self.crawler_right, text="Right")
         self.button.grid(row=1, column=1, padx=20, pady=20, sticky="e")
@@ -183,10 +197,10 @@ class App(customtkinter.CTk):
         self.time.insert("0.0", 'CURRENT_TIME')
         self.time_start()
 
-        # options tabs
+        # tether buttons
 
-        # self.tab_view = MyTabView(master=self)
-        # self.tab_view.grid(row=1, column=2, padx=20, pady=20)
+        self.frame = TetherButtonGroup(master=self)
+        self.frame.grid(row=2, column=0, columnspan=3, padx=(20, 0), pady=20, sticky="w")
 
         # window buttons
 
@@ -212,26 +226,24 @@ class App(customtkinter.CTk):
         # arm frame
 
         self.frame = ArmButtonGroup(master=self)
-        self.frame.grid(row=2, column=0, columnspan=3, padx=(20, 0), pady=20, sticky="w")
+        self.frame.grid(row=5, column=0, columnspan=3, padx=(20, 0), pady=20, sticky="w")
         
-     
-
        # video buttons
         self.label = customtkinter.CTkLabel(self, text="Video Settings")
         self.label.grid(row=1, column=1, padx=20, pady=(50, 0), sticky="se")
 
-        self.button = customtkinter.CTkButton(master=self, command=self.program_take_recording, text="Rec.")
-        self.button.grid(row=2, column=1, padx=0, pady=(0,50), sticky="ne")
+        self.record_on = customtkinter.CTkButton(master=self, command=self.program_take_recording, text="Rec.")
+        self.record_on.grid(row=2, column=1, padx=0, pady=(0,50), sticky="ne")
 
-        self.button = customtkinter.CTkButton(master=self, command=self.program_stop_recording, text="Stop Rec.")
-        self.button.grid(row=2, column=1, padx=0, pady=0, sticky="e")
+        self.record_off = customtkinter.CTkButton(master=self, command=self.program_stop_recording, text="Stop Rec.")
+        self.record_off.grid(row=2, column=1, padx=0, pady=0, sticky="e")
 
         self.button = customtkinter.CTkButton(master=self, command=self.program_take_picture, text="Take Pic.")
         self.button.grid(row=2, column=1, padx=0, pady=(50, 0), sticky="se")
 
         # video device 
 
-        self.vid = MyVideoCapture(0)
+        self.vid = MyVideoCapture(1)
 
         self.canvas = tk.Canvas(self, width=self.vid.width, height=self.vid.height)
         self.canvas.grid(row=1, column=2, rowspan=20, columnspan=20,padx=20, pady=20,sticky="nsew")
@@ -275,18 +287,8 @@ class App(customtkinter.CTk):
         self.wm_attributes("-fullscreen", "False")
     
     def close_window(self):
+        del self.vid
         self.destroy()
-
-   
-    
-    def tether_extend(self):
-        print("extending tether")
-    
-    def tether_stop(self):
-        print("tether stopped")
-    
-    def tether_retract(self):
-        print("retracting tether")
     
 if __name__ == "__main__":
     app = App()
