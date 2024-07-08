@@ -4,6 +4,8 @@ import tkinter as tk
 from PIL import Image, ImageTk
 from datetime import datetime
 
+import pretend_client as client
+
 class MyVideoCapture:
 
     res_width, res_height = (2048, 1536) #highest on pi is 1920, 1080
@@ -50,6 +52,8 @@ class TetherButtonGroup(customtkinter.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
 
+        self.extend = 0 # test code REMOVE
+
         # tether buttons
         self.grid_rowconfigure(tuple(range(9)), weight=1)
         self.grid_columnconfigure(tuple(range(9)), weight=1)
@@ -68,6 +72,8 @@ class TetherButtonGroup(customtkinter.CTkFrame):
 
     def tether_extend(self):
         print("extending tether")
+        client.print_message(self.extend) # test code REMOVE
+        
     
     def tether_stop(self):
         print("tether stopped")
