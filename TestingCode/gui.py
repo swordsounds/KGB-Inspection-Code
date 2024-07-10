@@ -3,8 +3,29 @@ import customtkinter
 import tkinter as tk
 from PIL import Image, ImageTk
 from datetime import datetime
+'''
+Edit the pickle and socket code
+'''
+import socket
+import pickle
 
-import pretend_client as client
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+ip = '127.0.0.1'
+port = 6666
+s.bind((ip, port))
+
+# import pretend_client as client # test code REMOVE 
+class ClientVideoCapture:
+    '''
+    Edit code below
+    '''
+    x = s.recvfrom(1000000)
+    clientip = x[1][0]
+    data = x[0]
+    data = pickle.loads(data)
+
+    def __init__(self):
+        self.vid = 0
 
 class MyVideoCapture:
 
@@ -72,7 +93,7 @@ class TetherButtonGroup(customtkinter.CTkFrame):
 
     def tether_extend(self):
         print("extending tether")
-        client.print_message(self.extend) # test code REMOVE
+        # client.print_message(self.extend) # test code REMOVE
         
     
     def tether_stop(self):
@@ -178,7 +199,7 @@ class App(customtkinter.CTk):
     rec_toggle = False
     rec_counter = 0
     img_counter = 0
-
+    
     def __init__(self):
         super().__init__()
 
@@ -190,10 +211,24 @@ class App(customtkinter.CTk):
         self.wm_iconbitmap(default=None)
         self.minsize(300, 200)
 
+        
+        '''
+        Background code, gotta fix buttons corner radius
+        '''
+        # background_image = customtkinter.CTkImage(Image.open("carbon-fiber-manufacturing-848x500.jpg"), size=(width, height))
+        # bg_lbl = customtkinter.CTkLabel(self, text="", image=background_image)
+        # bg_lbl.place(x=0, y=-1)
+
         # 20x20 grid system
 
         self.grid_rowconfigure(tuple(range(21)), weight=1)
         self.grid_columnconfigure(tuple(range(21)), weight=1)
+
+        # logo 
+
+        # kgb_logo = customtkinter.CTkImage(Image.open("logo.jpg"), size=(250, 150))
+        # logo = customtkinter.CTkLabel(self, text="", image=kgb_logo)
+        # logo.grid(row=1, column=0, sticky="w")
 
         # time display 
 
@@ -257,8 +292,8 @@ class App(customtkinter.CTk):
         try:
             ret, frame = self.vid.get_frame()        
             if ret:
-                    self.photo = ImageTk.PhotoImage(image = Image.fromarray(frame))
-                    self.canvas.create_image(0, 0, image = self.photo, anchor = tk.NW)  
+                    self.photo = ImageTk.PhotoImage(image= Image.fromarray(frame))
+                    self.canvas.create_image(0, 0, image=self.photo, anchor = tk.NW)  
             self.after(15, self.video_update)
         except Exception as e:
             print(e)
@@ -293,7 +328,8 @@ class App(customtkinter.CTk):
     def close_window(self):
         del self.vid
         self.destroy()
-    
+
+
 if __name__ == "__main__":
     app = App()
     app.attributes("-fullscreen", "True")
