@@ -4,15 +4,15 @@ import pickle
 
 print("Client started...")
 
-s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-s.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 1000000)
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 1000000)
 
 server_ip = '127.0.0.1'
 server_port = 6666
 
 cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-cap.set(3, 640)
-cap.set(4, 480)
+cap.set(3, 1920)
+cap.set(4, 1080)
 
 while cap.isOpened():
 
@@ -24,7 +24,7 @@ while cap.isOpened():
     
     x_as_bytes = pickle.dumps(buffer)
 
-    s.sendto((x_as_bytes), (server_ip, server_port))
+    server.sendto((x_as_bytes), (server_ip, server_port))
 
     if cv2.waitKey(5) & 0xFF == 27:
         break

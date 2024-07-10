@@ -3,28 +3,23 @@ import customtkinter
 import tkinter as tk
 from PIL import Image, ImageTk
 from datetime import datetime
-#import pretend_client as client # test code REMOVE 
-'''
-Edit the pickle and socket code
-'''
 import socket
 import pickle
-
-
 
 class ClientVideoCapture:
     '''
     Edit code below
     '''
-    global s
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    global server
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     ip = '127.0.0.1'
     port = 6666
-    s.bind((ip, port))
-   
+    server.bind((ip, port))
     def get_frame(self, data):
         frame = cv2.imdecode(data, cv2.IMREAD_COLOR)
-        return frame
+        dim = (1100, 720)
+        resized = cv2.resize(frame, dim, interpolation=cv2.INTER_AREA)
+        return cv2.cvtColor(resized, cv2.COLOR_BGR2RGB)
 
 class MyVideoCapture:
 
@@ -286,12 +281,12 @@ class App(customtkinter.CTk):
         # test code FIX
 
         self.server = ClientVideoCapture()
-        self.video_frame = tk.Canvas(self, width='640', height='480')
+        self.video_frame = tk.Canvas(self, width='1920', height='1080')
         self.video_frame.grid(row=1, column=2, rowspan=4, columnspan=20,padx=20, pady=20,sticky="nsew")
         self.server_update()
         # video device 
 
-    #     self.vid = MyVideoCapture(1)
+    #     self.vid = MyVideoCapture(0)
     #     self.canvas = tk.Canvas(self, width=self.vid.width, height=self.vid.height)
     #     self.canvas.grid(row=1, column=2, rowspan=4, columnspan=20,padx=20, pady=20,sticky="nsew")
     #     self.video_update()      
@@ -307,10 +302,8 @@ class App(customtkinter.CTk):
     #         print(e)
 
     def server_update(self):
-        x = s.recvfrom(1000000)
-        clientip = x[1][0]
-        data = x[0]
-        data = pickle.loads(data)
+        bytes: list[str, tuple[str, int]] = server.recvfrom(1000000)
+        data = pickle.loads(bytes[0])
 
         frame = self.server.get_frame(data)
         self.photo = ImageTk.PhotoImage(image=Image.fromarray(frame)) 
