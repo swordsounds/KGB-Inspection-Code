@@ -6,34 +6,34 @@ from datetime import datetime
 import socket
 import pickle
 
-class ClientVideoCapture:
-    '''
-    Edit code below
-    '''
-    global server
-    server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    host_ip = '127.0.0.1'
-    port = 6666
-    socket_address = (host_ip, port)
-    server.bind(socket_address)
+# class ClientVideoCapture:
+#     '''
+#     Edit code below
+#     '''
+#     global server
+#     server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+#     host_ip = '127.0.0.1'
+#     port = 6666
+#     socket_address = (host_ip, port)
+#     server.bind(socket_address)
 
-    def get_frame(self, data):
-        frame = cv2.imdecode(data, cv2.IMREAD_COLOR)
-        # dim = (1100, 720)
-        # resized = cv2.resize(frame, dim, interpolation=cv2.INTER_AREA)
-        return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+#     def get_frame(self, data):
+#         frame = cv2.imdecode(data, cv2.IMREAD_COLOR)
+#         # dim = (1100, 720)
+#         # resized = cv2.resize(frame, dim, interpolation=cv2.INTER_AREA)
+#         return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
 class MyVideoCapture:
 
     res_width, res_height = (2048, 1536) #highest on pi is 1920, 1080
 
-    def __init__(self, video_source: int) -> None:
-        self.vid = cv2.VideoCapture(video_source)
+    def __init__(self):
+        self.vid = cv2.VideoCapture('http://127.0.0.1:9000/stream.mjpg')
         self.rec = None
-        self.width = self.vid.set(cv2.CAP_PROP_FRAME_WIDTH, self.res_width)
-        self.height = self.vid.set(cv2.CAP_PROP_FRAME_HEIGHT, self.res_height)
-        self.fps = self.vid.set(cv2.CAP_PROP_FPS, 30.0) #must use 10.0 on pi
-        self.expo = self.vid.set(cv2.CAP_PROP_EXPOSURE, -4.0) #set to -60/0 for pi
+        # self.width = self.vid.set(cv2.CAP_PROP_FRAME_WIDTH, self.res_width)
+        # self.height = self.vid.set(cv2.CAP_PROP_FRAME_HEIGHT, self.res_height)
+        # self.fps = self.vid.set(cv2.CAP_PROP_FPS, 30.0) #must use 10.0 on pi
+        # self.expo = self.vid.set(cv2.CAP_PROP_EXPOSURE, -4.0) #set to -60/0 for pi
 
     def get_frame(self) -> tuple[bool, list[int]]:
         ret, frame = self.vid.read()
@@ -41,12 +41,12 @@ class MyVideoCapture:
                 self.rec.write(frame)
         dim = (1100, 720)
         resized = cv2.resize(frame, dim, interpolation=cv2.INTER_AREA)
-        return (ret, cv2.cvtColor(resized, cv2.COLOR_BGR2RGB))
+        return (ret, cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
     
     def get_rec(self) -> object:
         file_name = f"video{rec_counter}.avi"
         fourcc = cv2.VideoWriter_fourcc(*'FMP4')
-        fps = 5.0
+        fps = 30.0
         res = (self.res_width, self.res_height)
         self.rec = cv2.VideoWriter(file_name, fourcc, fps, res)
         return self.rec
@@ -279,35 +279,35 @@ class App(customtkinter.CTk):
 
         # test code FIX
 
-        self.server = ClientVideoCapture()
-        self.video_frame = tk.Canvas(self, width='640', height='480')
-        self.video_frame.grid(row=1, column=2, rowspan=4, columnspan=20,padx=20, pady=20,sticky="nsew")
-        self.server_update()
+        # self.server = ClientVideoCapture()
+        # self.video_frame = tk.Canvas(self, width='640', height='480')
+        # self.video_frame.grid(row=1, column=2, rowspan=4, columnspan=20,padx=20, pady=20,sticky="nsew")
+        # self.server_update()
         # video device 
 
-    #     self.vid = MyVideoCapture(0)
-    #     self.canvas = tk.Canvas(self, width=self.vid.width, height=self.vid.height)
-    #     self.canvas.grid(row=1, column=2, rowspan=4, columnspan=20,padx=20, pady=20,sticky="nsew")
-    #     self.video_update()      
+        self.vid = MyVideoCapture()
+        self.canvas = tk.Canvas(self, width=1920, height=1080)
+        self.canvas.grid(row=1, column=2, rowspan=4, columnspan=20,padx=20, pady=20,sticky="nsew")
+        self.video_update()      
 
-    # def video_update(self):
-    #     try:
-    #         ret, frame = self.vid.get_frame()        
-    #         if ret:
-    #                 self.photo = ImageTk.PhotoImage(image= Image.fromarray(frame))
-    #                 self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)  
-    #         self.after(15, self.video_update)
-    #     except Exception as e:
-    #         print(e)
+    def video_update(self):
+        try:
+            ret, frame = self.vid.get_frame()        
+            if ret:
+                    self.photo = ImageTk.PhotoImage(image= Image.fromarray(frame))
+                    self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)  
+            self.after(15, self.video_update)
+        except Exception as e:
+            print(e)
 
-    def server_update(self):
-        bytes: list[str, tuple[str, int]] = server.recvfrom(1000000)
-        data = pickle.loads(bytes[0])
+    # def server_update(self):
+    #     bytes: list[str, tuple[str, int]] = server.recvfrom(1000000)
+    #     data = pickle.loads(bytes[0])
 
-        frame = self.server.get_frame(data)
-        self.photo = ImageTk.PhotoImage(image=Image.fromarray(frame)) 
-        self.video_frame.create_image(0, 0, image=self.photo, anchor=tk.NW)  
-        self.after(15, self.server_update)
+    #     frame = self.server.get_frame(data)
+    #     self.photo = ImageTk.PhotoImage(image=Image.fromarray(frame)) 
+    #     self.video_frame.create_image(0, 0, image=self.photo, anchor=tk.NW)  
+    #     self.after(15, self.server_update)
 
     def program_take_recording(self):
         global rec_toggle, rec_counter

@@ -1,11 +1,4 @@
-import cv2 
-import socket
-import pickle
-
-print("Client started...")
-def print_message(x):
-    print("Client_Side:{}".format(x))
-
+import cv2
 import pyshine as ps
 HTML="""
 <html>
