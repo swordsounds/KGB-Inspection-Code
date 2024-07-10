@@ -19,9 +19,9 @@ class ClientVideoCapture:
 
     def get_frame(self, data):
         frame = cv2.imdecode(data, cv2.IMREAD_COLOR)
-        dim = (1100, 720)
-        resized = cv2.resize(frame, dim, interpolation=cv2.INTER_AREA)
-        return cv2.cvtColor(resized, cv2.COLOR_BGR2RGB)
+        # dim = (1100, 720)
+        # resized = cv2.resize(frame, dim, interpolation=cv2.INTER_AREA)
+        return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
 class MyVideoCapture:
 
@@ -196,9 +196,6 @@ class App(customtkinter.CTk):
     rec_counter = 0
     img_counter = 0
     
-    
-
-
     def __init__(self):
         super().__init__()
 
@@ -283,7 +280,7 @@ class App(customtkinter.CTk):
         # test code FIX
 
         self.server = ClientVideoCapture()
-        self.video_frame = tk.Canvas(self, width='1920', height='1080')
+        self.video_frame = tk.Canvas(self, width='640', height='480')
         self.video_frame.grid(row=1, column=2, rowspan=4, columnspan=20,padx=20, pady=20,sticky="nsew")
         self.server_update()
         # video device 
@@ -347,5 +344,4 @@ class App(customtkinter.CTk):
 if __name__ == "__main__":
     app = App()
     app.attributes("-fullscreen", "True")
-    print("Server Running...")
     app.mainloop()
