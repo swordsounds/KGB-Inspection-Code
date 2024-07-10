@@ -26,11 +26,14 @@ address = ('127.0.0.1',9000) # Enter your IP address
 
 try:
     StreamProps.set_Mode(StreamProps,'cv2')
-    capture = cv2.VideoCapture(0)
+    capture = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+    # fourcc = cv2.VideoWriter_fourcc(*'MJPG')
     capture.set(cv2.CAP_PROP_BUFFERSIZE,3)
     capture.set(cv2.CAP_PROP_FRAME_WIDTH,1920)
     capture.set(cv2.CAP_PROP_FRAME_HEIGHT,1080)
     capture.set(cv2.CAP_PROP_FPS,60)
+    # capture.set(cv2.CAP_PROP_FOURCC, fourcc)
+    # capture.set(cv2.CAP_PROP_FORMAT, -1)
     StreamProps.set_Capture(StreamProps,capture)
     StreamProps.set_Quality(StreamProps,90)
     server = ps.Streamer(address,StreamProps)
@@ -38,4 +41,3 @@ try:
     server.serve_forever()
 except Exception as e:
     print(e)
-
