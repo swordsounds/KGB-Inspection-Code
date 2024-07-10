@@ -3,29 +3,27 @@ import customtkinter
 import tkinter as tk
 from PIL import Image, ImageTk
 from datetime import datetime
+#import pretend_client as client # test code REMOVE 
 '''
 Edit the pickle and socket code
 '''
 import socket
 import pickle
 
-s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-ip = '127.0.0.1'
-port = 6666
-s.bind((ip, port))
 
-# import pretend_client as client # test code REMOVE 
+
 class ClientVideoCapture:
     '''
     Edit code below
     '''
-    x = s.recvfrom(1000000)
-    clientip = x[1][0]
-    data = x[0]
-    data = pickle.loads(data)
-
-    def get_frame(self):
-        frame = cv2.imdecode(self.data, cv2.IMREAD_COLOR)
+    global s
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    ip = '127.0.0.1'
+    port = 6666
+    s.bind((ip, port))
+   
+    def get_frame(self, data):
+        frame = cv2.imdecode(data, cv2.IMREAD_COLOR)
         return frame
 
 class MyVideoCapture:
@@ -201,6 +199,9 @@ class App(customtkinter.CTk):
     rec_counter = 0
     img_counter = 0
     
+    
+
+
     def __init__(self):
         super().__init__()
 
@@ -282,11 +283,11 @@ class App(customtkinter.CTk):
         self.button = customtkinter.CTkButton(master=self, command=self.program_take_picture, text="Take Pic.")
         self.button.grid(row=2, column=1, padx=0, pady=(50, 0), sticky="se")
 
-        # test code REMOVE
+        # test code FIX
 
         self.server = ClientVideoCapture()
-        self.canvas = tk.Canvas(self, width='640', height='480')
-        self.canvas.grid(row=4, column=2, rowspan=4, columnspan=20,padx=20, pady=20,sticky="nsew")
+        self.video_frame = tk.Canvas(self, width='640', height='480')
+        self.video_frame.grid(row=1, column=2, rowspan=4, columnspan=20,padx=20, pady=20,sticky="nsew")
         self.server_update()
         # video device 
 
@@ -306,10 +307,15 @@ class App(customtkinter.CTk):
     #         print(e)
 
     def server_update(self):
-        frame = self.server.get_frame()
-        self.photo = ImageTk.PhotoImage(image= Image.fromarray(frame))
-        self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)  
-        self.after(1000, self.server_update())
+        x = s.recvfrom(1000000)
+        clientip = x[1][0]
+        data = x[0]
+        data = pickle.loads(data)
+
+        frame = self.server.get_frame(data)
+        self.photo = ImageTk.PhotoImage(image=Image.fromarray(frame)) 
+        self.video_frame.create_image(0, 0, image=self.photo, anchor=tk.NW)  
+        self.after(15, self.server_update)
 
     def program_take_recording(self):
         global rec_toggle, rec_counter
@@ -339,7 +345,7 @@ class App(customtkinter.CTk):
         self.wm_attributes("-fullscreen", "False")
     
     def close_window(self):
-        del self.vid
+        # del self.vid
         self.destroy()
 
 
