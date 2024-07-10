@@ -4,12 +4,13 @@ import pickle
 
 print("Client started...")
 
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+# server.connect(('127.0.0.1', 6666))
 server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 1000000)
 
 server_ip = '127.0.0.1'
 server_port = 6666
-
+# server.connect(('127.0.0.1', 6666))
 cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 cap.set(3, 1920)
 cap.set(4, 1080)
@@ -20,7 +21,7 @@ while cap.isOpened():
     
     cv2.imshow('Img Client', img)
 
-    ret, buffer = cv2.imencode('.jpg', img, [int(cv2.IMWRITE_JPEG_QUALITY), 95])
+    ret, buffer = cv2.imencode('.jpg', img, [int(cv2.IMWRITE_JPEG_QUALITY), 1])
     
     x_as_bytes = pickle.dumps(buffer)
 

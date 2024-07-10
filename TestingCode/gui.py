@@ -11,10 +11,12 @@ class ClientVideoCapture:
     Edit code below
     '''
     global server
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    ip = '127.0.0.1'
+    server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    host_ip = '127.0.0.1'
     port = 6666
-    server.bind((ip, port))
+    socket_address = (host_ip, port)
+    server.bind(socket_address)
+
     def get_frame(self, data):
         frame = cv2.imdecode(data, cv2.IMREAD_COLOR)
         dim = (1100, 720)
