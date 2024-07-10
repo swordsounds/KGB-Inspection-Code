@@ -343,6 +343,6 @@ class App(customtkinter.CTk):
 
 if __name__ == "__main__":
     app = App()
-    app.attributes("-fullscreen", True)
-    # app.state('zoomed')
+    app.wm_attributes('-fullscreen', True)
+    app.state('normal')
     app.mainloop()
