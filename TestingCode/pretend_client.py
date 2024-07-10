@@ -17,11 +17,11 @@ cap.set(4, 480)
 while cap.isOpened():
 
     ret, img = cap.read()
-
+    
     cv2.imshow('Img Client', img)
 
     ret, buffer = cv2.imencode('.jpg', img, [int(cv2.IMWRITE_JPEG_QUALITY), 95])
-
+    
     x_as_bytes = pickle.dumps(buffer)
 
     s.sendto((x_as_bytes), (server_ip, server_port))

@@ -24,8 +24,9 @@ class ClientVideoCapture:
     data = x[0]
     data = pickle.loads(data)
 
-    def __init__(self):
-        self.vid = 0
+    def get_frame(self):
+        frame = cv2.imdecode(self.data, cv2.IMREAD_COLOR)
+        return frame
 
 class MyVideoCapture:
 
@@ -281,22 +282,34 @@ class App(customtkinter.CTk):
         self.button = customtkinter.CTkButton(master=self, command=self.program_take_picture, text="Take Pic.")
         self.button.grid(row=2, column=1, padx=0, pady=(50, 0), sticky="se")
 
+        # test code REMOVE
+
+        self.server = ClientVideoCapture()
+        self.canvas = tk.Canvas(self, width='640', height='480')
+        self.canvas.grid(row=4, column=2, rowspan=4, columnspan=20,padx=20, pady=20,sticky="nsew")
+        self.server_update()
         # video device 
 
-        self.vid = MyVideoCapture(1)
-        self.canvas = tk.Canvas(self, width=self.vid.width, height=self.vid.height)
-        self.canvas.grid(row=1, column=2, rowspan=4, columnspan=20,padx=20, pady=20,sticky="nsew")
-        self.video_update()      
+    #     self.vid = MyVideoCapture(1)
+    #     self.canvas = tk.Canvas(self, width=self.vid.width, height=self.vid.height)
+    #     self.canvas.grid(row=1, column=2, rowspan=4, columnspan=20,padx=20, pady=20,sticky="nsew")
+    #     self.video_update()      
 
-    def video_update(self):
-        try:
-            ret, frame = self.vid.get_frame()        
-            if ret:
-                    self.photo = ImageTk.PhotoImage(image= Image.fromarray(frame))
-                    self.canvas.create_image(0, 0, image=self.photo, anchor = tk.NW)  
-            self.after(15, self.video_update)
-        except Exception as e:
-            print(e)
+    # def video_update(self):
+    #     try:
+    #         ret, frame = self.vid.get_frame()        
+    #         if ret:
+    #                 self.photo = ImageTk.PhotoImage(image= Image.fromarray(frame))
+    #                 self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)  
+    #         self.after(15, self.video_update)
+    #     except Exception as e:
+    #         print(e)
+
+    def server_update(self):
+        frame = self.server.get_frame()
+        self.photo = ImageTk.PhotoImage(image= Image.fromarray(frame))
+        self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)  
+        self.after(1000, self.server_update())
 
     def program_take_recording(self):
         global rec_toggle, rec_counter
@@ -333,4 +346,5 @@ class App(customtkinter.CTk):
 if __name__ == "__main__":
     app = App()
     app.attributes("-fullscreen", "True")
+    print("Server Running...")
     app.mainloop()

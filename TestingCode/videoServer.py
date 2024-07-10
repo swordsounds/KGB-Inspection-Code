@@ -15,7 +15,7 @@ while True:
     data = pickle.loads(data)
 
     img = cv2.imdecode(data, cv2.IMREAD_COLOR)
-
+    # print(img)
     cv2.imshow('Img Server', img)
 
     if cv2.waitKey(5) & 0xFF == 27:
