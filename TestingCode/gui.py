@@ -1,27 +1,8 @@
 import cv2
-import customtkinter
 import tkinter as tk
+import customtkinter
 from PIL import Image, ImageTk
 from datetime import datetime
-import socket
-import pickle
-
-# class ClientVideoCapture:
-#     '''
-#     Edit code below
-#     '''
-#     global server
-#     server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-#     host_ip = '127.0.0.1'
-#     port = 6666
-#     socket_address = (host_ip, port)
-#     server.bind(socket_address)
-
-#     def get_frame(self, data):
-#         frame = cv2.imdecode(data, cv2.IMREAD_COLOR)
-#         # dim = (1100, 720)
-#         # resized = cv2.resize(frame, dim, interpolation=cv2.INTER_AREA)
-#         return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
 class MyVideoCapture:
 
@@ -202,12 +183,10 @@ class App(customtkinter.CTk):
         width = self.winfo_screenwidth()
         height = self.winfo_screenheight()
         self.geometry("{}x{}".format(width, height))
-
         self.title("Control Panel")
+        self.wm_attributes('-fullscreen', True)
         self.wm_iconbitmap(default=None)
         self.minsize(300, 200)
-
-        
         '''
         Background code, gotta fix buttons corner radius
         '''
@@ -300,15 +279,6 @@ class App(customtkinter.CTk):
         except Exception as e:
             print(e)
 
-    # def server_update(self):
-    #     bytes: list[str, tuple[str, int]] = server.recvfrom(1000000)
-    #     data = pickle.loads(bytes[0])
-
-    #     frame = self.server.get_frame(data)
-    #     self.photo = ImageTk.PhotoImage(image=Image.fromarray(frame)) 
-    #     self.video_frame.create_image(0, 0, image=self.photo, anchor=tk.NW)  
-    #     self.after(15, self.server_update)
-
     def program_take_recording(self):
         global rec_toggle, rec_counter
         self.vid.get_rec()
@@ -342,7 +312,10 @@ class App(customtkinter.CTk):
 
 
 if __name__ == "__main__":
+    # app = App()
+    # app.attributes('-fullscreen', True)
+    # app.state('zoomed')
+    
+    # app.mainloop()
     app = App()
-    app.wm_attributes('-fullscreen', True)
-    app.state('normal')
     app.mainloop()
