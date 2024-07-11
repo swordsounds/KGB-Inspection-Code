@@ -5,30 +5,23 @@ from PIL import Image, ImageTk
 from datetime import datetime
 
 class MyVideoCapture:
-
-    res_width, res_height = (2048, 1536) #highest on pi is 1920, 1080
-
+    #highest res on pi is 1920, 1080
     def __init__(self):
-        self.vid = cv2.VideoCapture('http://127.0.0.1:9000/stream.mjpg')
+        self.vid = cv2.VideoCapture('http://127.0.0.1:9000/stream.mjpg') #change ip in prod
         self.rec = None
-        # self.width = self.vid.set(cv2.CAP_PROP_FRAME_WIDTH, self.res_width)
-        # self.height = self.vid.set(cv2.CAP_PROP_FRAME_HEIGHT, self.res_height)
-        # self.fps = self.vid.set(cv2.CAP_PROP_FPS, 30.0) #must use 10.0 on pi
-        # self.expo = self.vid.set(cv2.CAP_PROP_EXPOSURE, -4.0) #set to -60/0 for pi
 
     def get_frame(self) -> tuple[bool, list[int]]:
         ret, frame = self.vid.read()
         if rec_toggle:
                 self.rec.write(frame)
-        dim = (1100, 720)
-        resized = cv2.resize(frame, dim, interpolation=cv2.INTER_AREA)
-        return (ret, cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+        resized = cv2.resize(frame, video_screen_dim, interpolation=cv2.INTER_AREA)
+        return (ret, cv2.cvtColor(resized, cv2.COLOR_BGR2RGB))
     
     def get_rec(self) -> object:
         file_name = f"video{rec_counter}.avi"
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
         fps = 10.0
-        res = (1920, 1080)
+        res = (2560, 1440)
         self.rec = cv2.VideoWriter(file_name, fourcc, fps, res)
         return self.rec
 
@@ -172,11 +165,12 @@ class ArmButtonGroup(customtkinter.CTkFrame):
 class App(customtkinter.CTk):
 
     customtkinter.set_appearance_mode("dark")
-    global rec_toggle, img_counter, rec_counter
+    global rec_toggle, img_counter, rec_counter, video_screen_dim
     rec_toggle = False
     rec_counter = 0
     img_counter = 0
-    
+    video_screen_dim = (1280, 720)
+
     def __init__(self):
         super().__init__()
 
@@ -201,9 +195,9 @@ class App(customtkinter.CTk):
 
         # logo 
 
-        # kgb_logo = customtkinter.CTkImage(Image.open("logo.jpg"), size=(250, 150))
-        # logo = customtkinter.CTkLabel(self, text="", image=kgb_logo)
-        # logo.grid(row=1, column=0, sticky="w")
+        kgb_logo = customtkinter.CTkImage(Image.open("logo.jpg"), size=(125, 75))
+        logo = customtkinter.CTkLabel(self, text="", image=kgb_logo)
+        logo.grid(row=0, column=0, sticky="n")
 
         # time display 
 
@@ -256,16 +250,10 @@ class App(customtkinter.CTk):
         self.button = customtkinter.CTkButton(master=self, command=self.program_take_picture, text="Take Pic.")
         self.button.grid(row=2, column=1, padx=0, pady=(50, 0), sticky="se")
 
-        # test code FIX
-
-        # self.server = ClientVideoCapture()
-        # self.video_frame = tk.Canvas(self, width='640', height='480')
-        # self.video_frame.grid(row=1, column=2, rowspan=4, columnspan=20,padx=20, pady=20,sticky="nsew")
-        # self.server_update()
         # video device 
 
         self.vid = MyVideoCapture()
-        self.canvas = tk.Canvas(self, width=1920, height=1080)
+        self.canvas = tk.Canvas(self, width=1280, height=700) #adjusted height by -20px to remove whitespace :/
         self.canvas.grid(row=1, column=2, rowspan=4, columnspan=20,padx=20, pady=20,sticky="nsew")
         self.video_update()      
 
@@ -310,12 +298,6 @@ class App(customtkinter.CTk):
         # del self.vid
         self.destroy()
 
-
 if __name__ == "__main__":
-    # app = App()
-    # app.attributes('-fullscreen', True)
-    # app.state('zoomed')
-    
-    # app.mainloop()
     app = App()
     app.mainloop()
