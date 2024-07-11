@@ -58,7 +58,8 @@ def get_command():
         try:
             while len(data) < payload_size:
                 packet = client_socket.recv(4*1024) # 4K
-                if not packet: break
+                if not packet: 
+                    break
                 data+=packet
             packed_msg_size = data[:payload_size]
             data = data[payload_size:]

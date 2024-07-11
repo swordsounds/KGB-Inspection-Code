@@ -14,53 +14,44 @@ HTML="""
             </body>
         </html>
     """
+print("Client started...")
+f = open("scrapthis.txt", "w")
+f.close()
+ip_address = '127.0.0.1' # Enter your IP address 
+video_port = 9000 # video port
+cmd_port = 7000 # port for crawler commands
 
-class Main:
+def video_stream_start():
+    try:
+        StreamProps = ps.StreamProps
+        StreamProps.set_Page(StreamProps, HTML)
+        StreamProps.set_Mode(StreamProps,'cv2')
+        capture = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+        capture.set(cv2.CAP_PROP_BUFFERSIZE,3)
+        capture.set(cv2.CAP_PROP_FRAME_WIDTH,2560)
+        capture.set(cv2.CAP_PROP_FRAME_HEIGHT,1440)
+        capture.set(cv2.CAP_PROP_EXPOSURE, -3.0)
+        capture.set(cv2.CAP_PROP_FPS,120)
+        StreamProps.set_Capture(StreamProps,capture)
+        StreamProps.set_Quality(StreamProps,90)
+        streamer = ps.Streamer((ip_address, video_port), StreamProps)
+        print('Stream started at','http://{}:{}'.format(ip_address, video_port))
+        streamer.serve_forever()
+    except Exception as e:
+        print(e)
 
-    print("Client started...")
-    ip_address = '127.0.0.1' # Enter your IP address 
-    video_port = 9000 # video port
-    cmd_port = 7000 # port for crawler commands
-
-    def __init__(self):
-        self.server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.server.bind((self.ip_address, 6666))
-
-        #test code FIX
-        self.video_stream_start()
-
-        p = Process(target=self.server_listener())
-        p.start()
-
-    def server_listener(self):
+def server_listener_start():
+        server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        server.bind((ip_address, cmd_port))
+        f = open("scrapthis.txt", "a")
         while True:
-            x = self.server.recvfrom(1000000)
+            x = server.recvfrom(1000000)
             data = x[0]
             data = pickle.loads(data)
-            print(data)
-        
-    def video_stream_start(self):
-        try:
-            StreamProps = ps.StreamProps
-            StreamProps.set_Page(StreamProps,HTML)
+            f.write(data)
 
-            StreamProps.set_Mode(StreamProps,'cv2')
-            capture = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-            capture.set(cv2.CAP_PROP_BUFFERSIZE,3)
-            capture.set(cv2.CAP_PROP_FRAME_WIDTH,2560)
-            capture.set(cv2.CAP_PROP_FRAME_HEIGHT,1440)
-            capture.set(cv2.CAP_PROP_EXPOSURE, -3.0)
-            capture.set(cv2.CAP_PROP_FPS,120)
-            StreamProps.set_Capture(StreamProps,capture)
-            StreamProps.set_Quality(StreamProps,90)
-            server = ps.Streamer((self.ip_address, self.video_port), StreamProps)
-            print('Server started at','http://{}:{}'.format(self.ip_address, self.video_port))
-            server.serve_forever()
-        except Exception as e:
-            print(e)
-    
-    @staticmethod
-    def print_message(x):
-        print("Client_Side:{}".format(x))
-
-main = Main()
+if __name__ == '__main__':
+    vid= Process(target=video_stream_start)
+    ser= Process(target=server_listener_start)
+    vid.start()
+    ser.start()
