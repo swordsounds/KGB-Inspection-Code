@@ -1,10 +1,8 @@
-import cv2
-import tkinter as tk
-import customtkinter
+import cv2, tkinter as tk, customtkinter
 from PIL import Image, ImageTk
 from datetime import datetime
 
-class MyVideoCapture:
+class VideoCaptureDevice:
     #highest res on pi is 1920, 1080
     def __init__(self):
         self.vid = cv2.VideoCapture('http://127.0.0.1:9000/stream.mjpg') #change ip in prod
@@ -237,7 +235,7 @@ class App(customtkinter.CTk):
         self.frame = ArmButtonGroup(master=self)
         self.frame.grid(row=5, column=0, padx=(20, 0), pady=20, sticky="w")
         
-       # video buttons
+        # video buttons
         self.label = customtkinter.CTkLabel(self, text="Video Settings")
         self.label.grid(row=1, column=1, padx=20, pady=(50, 0), sticky="se")
 
@@ -252,11 +250,11 @@ class App(customtkinter.CTk):
 
         # video device 
 
-        self.vid = MyVideoCapture()
+        self.vid = VideoCaptureDevice()
         self.canvas = tk.Canvas(self, width=1280, height=700) #adjusted height by -20px to remove whitespace :/
         self.canvas.grid(row=1, column=2, rowspan=4, columnspan=20,padx=20, pady=20,sticky="nsew")
         self.video_update()      
-
+  
     def video_update(self):
         try:
             ret, frame = self.vid.get_frame()        
@@ -295,7 +293,6 @@ class App(customtkinter.CTk):
         self.wm_attributes("-fullscreen", "False")
     
     def close_window(self):
-        # del self.vid
         self.destroy()
 
 if __name__ == "__main__":

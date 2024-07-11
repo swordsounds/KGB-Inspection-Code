@@ -1,4 +1,4 @@
-import cv2 
+# import cv2 
 import socket
 import pickle
 
@@ -13,11 +13,11 @@ while True:
     data = x[0]
 
     data = pickle.loads(data)
+    print(data)
+#     img = cv2.imdecode(data, cv2.IMREAD_COLOR)
+#     # print(img)
+#     cv2.imshow('Img Server', img)
 
-    img = cv2.imdecode(data, cv2.IMREAD_COLOR)
-    # print(img)
-    cv2.imshow('Img Server', img)
-
-    if cv2.waitKey(5) & 0xFF == 27:
-        break
-cv2.destroyAllWindows()
+#     if cv2.waitKey(5) & 0xFF == 27:
+#         break
+# cv2.destroyAllWindows()

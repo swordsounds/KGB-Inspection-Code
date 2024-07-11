@@ -2,7 +2,7 @@ import pygame
 
 pygame.init()
 
-def main():
+def controller():
     joystick = {}
 
     done = False
@@ -38,7 +38,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    controller()
     # If you forget this line, the program will 'hang'
     # on exit if running from IDLE.
     pygame.quit()
