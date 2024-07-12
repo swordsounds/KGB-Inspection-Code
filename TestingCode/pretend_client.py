@@ -1,14 +1,11 @@
-import cv2 
-import pyshine as ps
-import socket
-import pickle
+import cv2, pyshine as ps, socket, pickle
 from multiprocessing import Process
+
 HTML="""
         <html>
             <head>
                 <title>Video Streaming</title>
             </head>
-
             <body>
                 <center><img src="stream.mjpg" width='640' height='480' autoplay playsinline></center>
             </body>
@@ -17,7 +14,7 @@ HTML="""
 print("Client started...")
 ip_address = '127.0.0.1' # Enter your IP address 
 video_port = 9000 # video port
-cmd_port = 7000 # port for crawler commands
+cmd_port = 8000 # port for crawler commands
 
 def video_stream_start():
     try:
@@ -42,15 +39,15 @@ def server_listener_start():
         server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         server.bind((ip_address, cmd_port))
         
-        with open("scrapthis.txt", "w") as f: #test code REMOVE
-             f.close()
+        # with open("scrapthis.txt", "w") as f: #test code REMOVE
+        #      f.close()
 
         while True:
             x = server.recvfrom(1000000)
             data = x[0]
             data = pickle.loads(data)
 
-            with open("scrapthis.txt", "a", newline='\n') as f: #test code REMOVE
+            with open("scrapthis.txt", "w", newline='\n') as f: #test code REMOVE
                  f.write(data)
             f.close()
 

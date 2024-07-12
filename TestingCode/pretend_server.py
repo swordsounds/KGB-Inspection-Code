@@ -1,6 +1,4 @@
-import socket
-import pickle
-import pygame
+import socket, pickle, pygame
 
 pygame.init()
 
@@ -9,7 +7,7 @@ server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 1000000)
 
 server_ip = '127.0.0.1'
-server_port = 7000
+server_port = 8000
 
 def controller():
     # global buffer
