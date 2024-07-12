@@ -1,6 +1,9 @@
 import cv2, tkinter as tk, customtkinter
 from PIL import Image, ImageTk
 from datetime import datetime
+import uuid
+
+# unique_filename = str(uuid.uuid4()) #test code TEST THIS
 
 class VideoCaptureDevice:
     #highest res on pi is 1920, 1080
@@ -63,7 +66,6 @@ class TetherButtonGroup(customtkinter.CTkFrame):
         print("extending tether")
         # client.print_message(self.extend) # test code REMOVE
         
-    
     def tether_stop(self):
         print("tether stopped")
     
