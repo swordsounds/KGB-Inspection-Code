@@ -6,7 +6,7 @@ import uuid
 # unique_filename = str(uuid.uuid4()) #test code TEST THIS
 
 class VideoCaptureDevice:
-    #highest res on pi is 1920, 1080
+    #highest res on pi is 1280, 720
     def __init__(self):
         self.vid = cv2.VideoCapture('http://127.0.0.1:9000/stream.mjpg') #change ip in prod
         self.rec = None
@@ -20,7 +20,7 @@ class VideoCaptureDevice:
     
     def get_rec(self) -> object:
         file_name = f"video{rec_counter}.avi"
-        fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        fourcc = cv2.VideoWriter_fourcc(*'XVID')#*'FMP4'
         fps = 10.0
         res = (2560, 1440)
         self.rec = cv2.VideoWriter(file_name, fourcc, fps, res)
