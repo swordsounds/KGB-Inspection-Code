@@ -15,8 +15,6 @@ HTML="""
         </html>
     """
 print("Client started...")
-f = open("scrapthis.txt", "w")
-f.close()
 ip_address = '127.0.0.1' # Enter your IP address 
 video_port = 9000 # video port
 cmd_port = 7000 # port for crawler commands
@@ -43,12 +41,18 @@ def video_stream_start():
 def server_listener_start():
         server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         server.bind((ip_address, cmd_port))
-        f = open("scrapthis.txt", "a")
+        
+        with open("scrapthis.txt", "w") as f: #test code REMOVE
+             f.close()
+
         while True:
             x = server.recvfrom(1000000)
             data = x[0]
             data = pickle.loads(data)
-            f.write(data)
+
+            with open("scrapthis.txt", "a", newline='\n') as f: #test code REMOVE
+                 f.write(data)
+            f.close()
 
 if __name__ == '__main__':
     vid= Process(target=video_stream_start)
