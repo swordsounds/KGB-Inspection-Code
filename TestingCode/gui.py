@@ -72,6 +72,11 @@ class TetherButtonGroup(customtkinter.CTkFrame):
         print("retracting tether")
 
 class MovementButtonGroup(customtkinter.CTkFrame):
+    forward = 1
+    backward = 0
+    left = 0
+    right = 0
+
     def __init__(self, master):
         super().__init__(master)
 
@@ -96,16 +101,19 @@ class MovementButtonGroup(customtkinter.CTkFrame):
         self.button.grid(row=1, column=3, padx=20, pady=20)
 
     def crawler_forward(self):
-        print("Crawler forward")
-
-    def crawler_right(self):
-        print("Crawler right")
+        self.forward = 0
 
     def crawler_backward(self):
         print("Crawler backwards")
 
+    def crawler_right(self):
+        print("Crawler right")
+
     def crawler_left(self):
         print("Crawler left")
+    
+    def getter(self):
+        return self.forward
 
 class GripperButtonGroup(customtkinter.CTkFrame):
     def __init__(self, master):
