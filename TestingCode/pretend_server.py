@@ -26,7 +26,12 @@ def controller():
 
                 if event.type == pygame.JOYBUTTONDOWN:
                     print("Joystick button pressed.")
+                    send_msg()
 
+                if event.type == pygame.JOYBUTTONUP:
+                    print("Joystick button released.")
+                    send_msg()
+                     
                 if event.type == pygame.JOYDEVICEADDED:
                     joy = pygame.joystick.Joystick(event.device_index)
                     joysticks[joy.get_instance_id()] = joy
@@ -52,11 +57,9 @@ def controller():
                                         }
                         value = joystick.get_button(buttons)
                         info[button_mapping[buttons]] = value
-                        
+
         except Exception as e:
             print(e)
-        send_msg()
-
 # server stuff
 def send_msg(): 
         x_as_bytes = pickle.dumps(info)
