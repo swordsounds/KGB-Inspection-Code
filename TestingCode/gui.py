@@ -3,8 +3,6 @@ from PIL import Image, ImageTk
 from datetime import datetime
 import uuid
 
-# unique_filename = str(uuid.uuid4()) #test code TEST THIS
-
 class VideoCaptureDevice:
     #highest res on pi is 1280, 720
     def __init__(self):
@@ -19,7 +17,8 @@ class VideoCaptureDevice:
         return (ret, cv2.cvtColor(resized, cv2.COLOR_BGR2RGB))
     
     def get_rec(self) -> object:
-        file_name = f"video{rec_counter}.avi"
+        unique_id = str(uuid.uuid4()).split('-')[0] #test code TEST THIS
+        file_name = f"{unique_id}.avi"
         fourcc = cv2.VideoWriter_fourcc(*'XVID')#*'FMP4'
         fps = 10.0
         res = (2560, 1440)
@@ -29,8 +28,8 @@ class VideoCaptureDevice:
     def get_pic(self) -> None:
         ret, frame = self.vid.read()
         if ret:
-            img_name = f'opencv_frame_{img_counter}'
-            cv2.imwrite(f"{img_name}.png", frame)
+            unique_id = str(uuid.uuid4()).split('-')[0] #test code TEST THIS
+            cv2.imwrite(f"{unique_id}.png", frame)
     
     def __del__(self) -> None:
         if self.vid.isOpened():
@@ -165,10 +164,8 @@ class ArmButtonGroup(customtkinter.CTkFrame):
 class App(customtkinter.CTk):
 
     customtkinter.set_appearance_mode("dark")
-    global rec_toggle, img_counter, rec_counter, video_screen_dim
+    global rec_toggle, video_screen_dim
     rec_toggle = False
-    rec_counter = 0
-    img_counter = 0
     video_screen_dim = (1280, 720)
 
     def __init__(self):
@@ -268,9 +265,8 @@ class App(customtkinter.CTk):
             print(e)
 
     def program_take_recording(self):
-        global rec_toggle, rec_counter
+        global rec_toggle
         self.vid.get_rec()
-        rec_counter += 1
         rec_toggle = True
 
     def program_stop_recording(self):
@@ -278,8 +274,6 @@ class App(customtkinter.CTk):
         rec_toggle = False
     
     def program_take_picture(self):
-        global img_counter
-        img_counter += 1
         self.vid.get_pic()
 
     def time_start(self):
