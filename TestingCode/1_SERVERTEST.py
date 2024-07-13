@@ -21,7 +21,7 @@ def handle_client(conn, addr):
             msg = conn.recv(msg_length).decode(FORMAT)
             if msg == DC_MESSAGE:
                 connected = False
-            conn.send('msg recv'.encode(FORMAT))
+        conn.sendto('Ping'.encode(FORMAT), (SERVER, PORT))
     conn.close()
 
 def start():

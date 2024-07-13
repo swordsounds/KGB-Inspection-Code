@@ -1,5 +1,5 @@
 import socket, pickle
-# from multiprocessing import Process
+from multiprocessing import Process
 import cv2, pyshine as ps
 
 HEADER = 2048
@@ -53,7 +53,20 @@ def video_stream_start():
         print(e)
 
 
+def server_listener_start():
+        print("Client Listening...")
+        while True:
+            x = client.recvfrom(2048)
+            data = x[0]
+            data = pickle.loads(data)
+
+            with open("scrapthis.txt", "w", newline='\n') as f: #test code REMOVE
+                 f.write(f'{data}')
+            f.close()
+
 if __name__ == '__main__':
-    video_stream_start()
-    send("hello world!")
+    vid= Process(target=video_stream_start)
+    ser= Process(target=server_listener_start)
+    vid.start()
+    ser.start()
     send(DC_MESSAGE)

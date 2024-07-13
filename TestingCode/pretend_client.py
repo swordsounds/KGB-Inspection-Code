@@ -41,7 +41,7 @@ def server_listener_start():
         server.bind((ip_address, cmd_port))
         
         while True:
-            x = server.recvfrom(1000000)
+            x = server.recvfrom(2048)
             data = x[0]
             data = pickle.loads(data)
 

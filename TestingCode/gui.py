@@ -5,15 +5,15 @@ import uuid
 
 import socket, pickle
 
-HEADER = 2048
-PORT = 6000
-FORMAT = 'utf-8'
-DC_MESSAGE = "!DISCONNECT"
-SERVER = "192.168.0.23"
-ADDR = (SERVER, PORT)
+# HEADER = 2048
+# PORT = 8000
+# FORMAT = 'utf-8'
+# DC_MESSAGE = "!DISCONNECT"
+# SERVER = "192.168.0.23"
+# ADDR = (SERVER, PORT)
 
-client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.connect(ADDR)
+# client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+# client.connect(ADDR)
 
 class VideoCaptureDevice:
     #highest res on pi is 1280, 720
@@ -141,16 +141,52 @@ class GripperButtonGroup(customtkinter.CTkFrame):
         self.button.grid(row=1, column=3, padx=20, pady=20)
 
     def gripper_open(self):
-        print("gripper opened")
+        server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
+
+        server_ip = '127.0.0.1'
+        server_port = 8000 
+
+        info = str({'Gripper': 'open'})
+
+        x_as_bytes = pickle.dumps(info)
+        server.sendto((x_as_bytes), (server_ip, server_port))
 
     def gripper_close(self):
-        print("gripper closed")
+        server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
+
+        server_ip = '127.0.0.1'
+        server_port = 8000 
+        
+        info = str({'Gripper': 'closed'})
+
+        x_as_bytes = pickle.dumps(info)
+        server.sendto((x_as_bytes), (server_ip, server_port))
 
     def gripper_left(self):
-        print("gripper wrist left")
+        server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
+
+        server_ip = '127.0.0.1'
+        server_port = 8000 
+        
+        info = str({'Gripper': 'left'})
+
+        x_as_bytes = pickle.dumps(info)
+        server.sendto((x_as_bytes), (server_ip, server_port))
         
     def gripper_right(self):
-        print("gripper wrist right")
+        server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
+
+        server_ip = '127.0.0.1'
+        server_port = 8000 
+        
+        info = str({'Gripper': 'right'})
+
+        x_as_bytes = pickle.dumps(info)
+        server.sendto((x_as_bytes), (server_ip, server_port))
 
 class ArmButtonGroup(customtkinter.CTkFrame):
     def __init__(self, master):
@@ -168,23 +204,25 @@ class ArmButtonGroup(customtkinter.CTkFrame):
         self.button.grid(row=1, column=1, padx=20, pady=20)
 
     def arm_extend(self):
-        message = "{Arm_extend: 1}".encode(FORMAT)
-        msg_len = len(message)
-        send_len = str(msg_len).encode(FORMAT)
-        send_len += b" " * (HEADER - len(send_len))
-        client.send(send_len)
-        client.send(message)
+        # message = "{Arm_extend: 1}".encode(FORMAT)
+        # msg_len = len(message)
+        # send_len = str(msg_len).encode(FORMAT)
+        # send_len += b" " * (HEADER - len(send_len))
+        # client.send(send_len)
+        # client.send(message)
+        pass
        
     def arm_retract(self):
-        message = "{Arm_retract: 1}".encode(FORMAT)
-        msg_len = len(message)
-        send_len = str(msg_len).encode(FORMAT)
-        send_len += b" " * (HEADER - len(send_len))
-        client.send(send_len)
-        client.send(message)
+        # message = "{Arm_retract: 1}".encode(FORMAT)
+        # msg_len = len(message)
+        # send_len = str(msg_len).encode(FORMAT)
+        # send_len += b" " * (HEADER - len(send_len))
+        # client.send(send_len)
+        # client.send(message)
+        pass
       
-    def __del__(self):
-        self.arm_extend(DC_MESSAGE)
+    # def __del__(self):
+    #     self.arm_extend(DC_MESSAGE)
 
 class App(customtkinter.CTk):
 
