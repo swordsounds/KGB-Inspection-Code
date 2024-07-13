@@ -5,10 +5,16 @@ import uuid
 
 import socket, pickle
 
+SERVER = '127.0.0.1'
+CMDPORT = 8000 
+
+server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
+
 class VideoCaptureDevice:
     #highest res on pi is 1280, 720
     def __init__(self):
-        self.vid = cv2.VideoCapture('http://127.0.0.1:9000/stream.mjpg') #change ip in prod
+        self.vid = cv2.VideoCapture('http://127.0.0.1:9000/stream.mjpg') #change ip in prod 192.168.0.19
         self.rec = None
 
     def get_frame(self) -> tuple[bool, list[int]]:
@@ -23,7 +29,7 @@ class VideoCaptureDevice:
         file_name = f"{unique_id}.avi"
         fourcc = cv2.VideoWriter_fourcc(*'XVID')#*'FMP4'
         fps = 10.0
-        res = (2560, 1440)
+        res = (1280, 720)
         self.rec = cv2.VideoWriter(file_name, fourcc, fps, res)
         return self.rec
 
@@ -63,41 +69,21 @@ class TetherButtonGroup(customtkinter.CTkFrame):
         self.button = customtkinter.CTkButton(master=self, command=self.tether_retract, text="Retract Tether")
         self.button.grid(row=1, column=2, padx=20, pady=20)
 
-    def tether_extend(self):
-        server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
-
-        server_ip = '127.0.0.1'
-        server_port = 8000 
-        
+    def tether_extend(self):  
         info = {'tether': 'extend'}
-
         x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (server_ip, server_port))
+        server.sendto((x_as_bytes), (SERVER, CMDPORT))
         
     def tether_stop(self):
-        server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
-
-        server_ip = '127.0.0.1'
-        server_port = 8000 
-        
         info = {'tether': 'stop'}
 
         x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (server_ip, server_port))
+        server.sendto((x_as_bytes), (SERVER, CMDPORT))
     
     def tether_retract(self):
-        server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
-
-        server_ip = '127.0.0.1'
-        server_port = 8000 
-        
         info = {'tether': 'retract'}
-
         x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (server_ip, server_port))
+        server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
 class MovementButtonGroup(customtkinter.CTkFrame):
     def __init__(self, master):
@@ -124,52 +110,24 @@ class MovementButtonGroup(customtkinter.CTkFrame):
         self.button.grid(row=1, column=3, padx=20, pady=20)
 
     def crawler_forward(self):
-        server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
-
-        server_ip = '127.0.0.1'
-        server_port = 8000 
-        
         info = {'crawl': 'forward'}
-
         x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (server_ip, server_port))
+        server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
     def crawler_backward(self):
-        server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
-
-        server_ip = '127.0.0.1'
-        server_port = 8000 
-        
         info = {'crawl': 'backward'}
-
         x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (server_ip, server_port))
+        server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
     def crawler_right(self):
-        server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
-
-        server_ip = '127.0.0.1'
-        server_port = 8000 
-        
         info = {'crawl': 'right'}
-
         x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (server_ip, server_port))
+        server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
     def crawler_left(self):
-        server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
-
-        server_ip = '127.0.0.1'
-        server_port = 8000 
-        
         info = {'crawl': 'left'}
-
         x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (server_ip, server_port))
+        server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
 class GripperButtonGroup(customtkinter.CTkFrame):
     def __init__(self, master):
@@ -193,52 +151,24 @@ class GripperButtonGroup(customtkinter.CTkFrame):
         self.button.grid(row=1, column=3, padx=20, pady=20)
 
     def gripper_open(self):
-        server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
-
-        server_ip = '127.0.0.1'
-        server_port = 8000 
-
         info = {'gripper': 'open'}
-
         x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (server_ip, server_port))
+        server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
     def gripper_close(self):
-        server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
-
-        server_ip = '127.0.0.1'
-        server_port = 8000 
-        
         info = {'gripper': 'closed'}
-
         x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (server_ip, server_port))
+        server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
     def gripper_left(self):
-        server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
-
-        server_ip = '127.0.0.1'
-        server_port = 8000 
-        
         info = {'gripper': 'left'}
-
         x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (server_ip, server_port))
+        server.sendto((x_as_bytes), (SERVER, CMDPORT))
         
     def gripper_right(self):
-        server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
-
-        server_ip = '127.0.0.1'
-        server_port = 8000 
-        
         info = {'gripper': 'right'}
-
         x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (server_ip, server_port))
+        server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
 class ArmButtonGroup(customtkinter.CTkFrame):
     def __init__(self, master):
@@ -256,29 +186,15 @@ class ArmButtonGroup(customtkinter.CTkFrame):
         self.button.grid(row=1, column=1, padx=20, pady=20)
 
     def arm_extend(self):
-        server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
-
-        server_ip = '127.0.0.1'
-        server_port = 8000 
-        
         info = {'arm': 'extend'}
-
         x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (server_ip, server_port))
+        server.sendto((x_as_bytes), (SERVER, CMDPORT))
         
        
     def arm_retract(self):
-        server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
-
-        server_ip = '127.0.0.1'
-        server_port = 8000 
-        
         info = {'arm': 'retract'}
-
         x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (server_ip, server_port))
+        server.sendto((x_as_bytes), (SERVER, CMDPORT))
       
 
 class App(customtkinter.CTk):

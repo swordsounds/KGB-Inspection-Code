@@ -1,5 +1,10 @@
 import socket, pickle, pygame
 
+server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
+
+SERVER = '127.0.0.1'
+CMDPORT = 8000 
 
 info = {
             "dpad_up": 0,
@@ -7,7 +12,6 @@ info = {
             "dpad_left": 0,
             "dpad_right": 0,
         }
-
 
 def controller():
     pygame.init()
@@ -19,6 +23,9 @@ def controller():
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     done = True
+
+                if event.type == pygame.JOYBUTTONDOWN:
+                    print("Joystick button pressed.")
 
                 if event.type == pygame.JOYDEVICEADDED:
                     joy = pygame.joystick.Joystick(event.device_index)
@@ -35,7 +42,8 @@ def controller():
                 #     axis = joystick.get_axis(i)
                     # print(f"Axis {i} value: {axis:>6.3f}")
                 
-                for buttons in range(11, 15):
+                
+                for buttons in range(11, 15): #on pi, dpad is hat
                     
                         button_mapping = {11: 'dpad_up',
                                         12: 'dpad_down',
@@ -51,12 +59,6 @@ def controller():
 
 # server stuff
 def send_msg(): 
-        server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
-
-        SERVER = '127.0.0.1'
-        CMDPORT = 8000 
-
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
