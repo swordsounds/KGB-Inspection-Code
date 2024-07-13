@@ -3,6 +3,18 @@ from PIL import Image, ImageTk
 from datetime import datetime
 import uuid
 
+import socket, pickle
+
+HEADER = 2048
+PORT = 6000
+FORMAT = 'utf-8'
+DC_MESSAGE = "!DISCONNECT"
+SERVER = "192.168.0.23"
+ADDR = (SERVER, PORT)
+
+client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client.connect(ADDR)
+
 class VideoCaptureDevice:
     #highest res on pi is 1280, 720
     def __init__(self):
@@ -72,11 +84,6 @@ class TetherButtonGroup(customtkinter.CTkFrame):
         print("retracting tether")
 
 class MovementButtonGroup(customtkinter.CTkFrame):
-    forward = 1
-    backward = 0
-    left = 0
-    right = 0
-
     def __init__(self, master):
         super().__init__(master)
 
@@ -101,7 +108,7 @@ class MovementButtonGroup(customtkinter.CTkFrame):
         self.button.grid(row=1, column=3, padx=20, pady=20)
 
     def crawler_forward(self):
-        self.forward = 0
+        print()
 
     def crawler_backward(self):
         print("Crawler backwards")
@@ -111,9 +118,6 @@ class MovementButtonGroup(customtkinter.CTkFrame):
 
     def crawler_left(self):
         print("Crawler left")
-    
-    def getter(self):
-        return self.forward
 
 class GripperButtonGroup(customtkinter.CTkFrame):
     def __init__(self, master):
@@ -164,10 +168,23 @@ class ArmButtonGroup(customtkinter.CTkFrame):
         self.button.grid(row=1, column=1, padx=20, pady=20)
 
     def arm_extend(self):
-        print("arm extended")
-
+        message = "{Arm_extend: 1}".encode(FORMAT)
+        msg_len = len(message)
+        send_len = str(msg_len).encode(FORMAT)
+        send_len += b" " * (HEADER - len(send_len))
+        client.send(send_len)
+        client.send(message)
+       
     def arm_retract(self):
-        print("arm retracted")
+        message = "{Arm_retract: 1}".encode(FORMAT)
+        msg_len = len(message)
+        send_len = str(msg_len).encode(FORMAT)
+        send_len += b" " * (HEADER - len(send_len))
+        client.send(send_len)
+        client.send(message)
+      
+    def __del__(self):
+        self.arm_extend(DC_MESSAGE)
 
 class App(customtkinter.CTk):
 
@@ -261,7 +278,7 @@ class App(customtkinter.CTk):
         self.canvas = tk.Canvas(self, width=1280, height=700) #adjusted height by -20px to remove whitespace :/
         self.canvas.grid(row=1, column=2, rowspan=4, columnspan=20,padx=20, pady=20,sticky="nsew")
         self.video_update()      
-  
+        
     def video_update(self):
         try:
             ret, frame = self.vid.get_frame()        
@@ -298,7 +315,7 @@ class App(customtkinter.CTk):
     
     def close_window(self):
         self.destroy()
-
+   
 if __name__ == "__main__":
     app = App()
     app.mainloop()

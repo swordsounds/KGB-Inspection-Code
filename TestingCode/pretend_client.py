@@ -40,9 +40,6 @@ def server_listener_start():
         server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         server.bind((ip_address, cmd_port))
         
-        # with open("scrapthis.txt", "w") as f: #test code REMOVE
-        #      f.close()
-
         while True:
             x = server.recvfrom(1000000)
             data = x[0]
