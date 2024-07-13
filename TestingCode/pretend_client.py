@@ -49,7 +49,7 @@ def server_listener_start():
             data = pickle.loads(data)
 
             with open("scrapthis.txt", "w", newline='\n') as f: #test code REMOVE
-                 f.write(data)
+                 f.write(f'{data}')
             f.close()
 
 if __name__ == '__main__':
