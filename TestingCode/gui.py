@@ -1,9 +1,7 @@
 import cv2, tkinter as tk, customtkinter
 from PIL import Image, ImageTk
 from datetime import datetime
-import uuid
-
-import socket, pickle
+import uuid, socket, pickle
 
 SERVER = '127.0.0.1'
 CMDPORT = 8000 
@@ -69,18 +67,21 @@ class TetherButtonGroup(customtkinter.CTkFrame):
         self.button = customtkinter.CTkButton(master=self, command=self.tether_retract, text="Retract Tether")
         self.button.grid(row=1, column=2, padx=20, pady=20)
 
-    def tether_extend(self):  
+    @staticmethod
+    def tether_extend():  
         info = {'tether': 'extend'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
-        
-    def tether_stop(self):
+
+    @staticmethod       
+    def tether_stop():
         info = {'tether': 'stop'}
 
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
-    
-    def tether_retract(self):
+
+    @staticmethod    
+    def tether_retract():
         info = {'tether': 'retract'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
@@ -109,22 +110,26 @@ class MovementButtonGroup(customtkinter.CTkFrame):
         self.button = customtkinter.CTkButton(master=self, command=self.crawler_left, text="Left")
         self.button.grid(row=1, column=3, padx=20, pady=20)
 
-    def crawler_forward(self):
+    @staticmethod
+    def crawler_forward():
         info = {'crawl': 'forward'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
-    def crawler_backward(self):
+    @staticmethod
+    def crawler_backward():
         info = {'crawl': 'backward'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
-    def crawler_right(self):
+    @staticmethod
+    def crawler_right():
         info = {'crawl': 'right'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
-    def crawler_left(self):
+    @staticmethod
+    def crawler_left():
         info = {'crawl': 'left'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
@@ -150,22 +155,26 @@ class GripperButtonGroup(customtkinter.CTkFrame):
         self.button = customtkinter.CTkButton(master=self, command=self.gripper_left, text="Claw Left")
         self.button.grid(row=1, column=3, padx=20, pady=20)
 
-    def gripper_open(self):
+    @staticmethod
+    def gripper_open():
         info = {'gripper': 'open'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
-    def gripper_close(self):
+    @staticmethod
+    def gripper_close():
         info = {'gripper': 'closed'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
-    def gripper_left(self):
+    @staticmethod
+    def gripper_left():
         info = {'gripper': 'left'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
-        
-    def gripper_right(self):
+
+    @staticmethod       
+    def gripper_right():
         info = {'gripper': 'right'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
@@ -185,13 +194,14 @@ class ArmButtonGroup(customtkinter.CTkFrame):
         self.button = customtkinter.CTkButton(master=self, command=self.arm_retract, text="Retract Arm")
         self.button.grid(row=1, column=1, padx=20, pady=20)
 
-    def arm_extend(self):
+    @staticmethod
+    def arm_extend():
         info = {'arm': 'extend'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
         
-       
-    def arm_retract(self):
+    @staticmethod      
+    def arm_retract():
         info = {'arm': 'retract'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
@@ -228,7 +238,7 @@ class App(customtkinter.CTk):
 
         # logo 
 
-        kgb_logo = customtkinter.CTkImage(Image.open("logo.jpg"), size=(125, 75))
+        kgb_logo = customtkinter.CTkImage(Image.open("Assets\logo.jpg"), size=(125, 75))
         logo = customtkinter.CTkLabel(self, text="", image=kgb_logo)
         logo.grid(row=0, column=0, sticky="n")
 
@@ -294,7 +304,7 @@ class App(customtkinter.CTk):
         try:
             ret, frame = self.vid.get_frame()        
             if ret:
-                    self.photo = ImageTk.PhotoImage(image= Image.fromarray(frame))
+                    self.photo = ImageTk.PhotoImage(image=Image.fromarray(frame))
                     self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)  
             self.after(15, self.video_update)
         except Exception as e:

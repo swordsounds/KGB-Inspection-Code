@@ -18,7 +18,7 @@ HTML="""
     """
 
 info = {
-   'dpad_up': 0,
+    'dpad_up': 0,
     'dpad_down': 0,
     'dpad_left': 0,
     'dpad_right': 0,
@@ -54,11 +54,13 @@ def server_listener_start():
         server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         server.bind((SERVER, CMDPORT))
         
-        fieldnames = ['dpad_up', 'dpad_down', 'dpad_left', 'dpad_right', 'tether', 'crawl','gripper', 'arm']
+        fieldnames = ['dpad_up', 'dpad_down', 'dpad_left', 
+                      'dpad_right', 'tether', 'crawl',
+                      'gripper', 'arm']
         
         while True:
-            x = server.recvfrom(2048)
-            data = x[0]
+            msg_bytes = server.recvfrom(2048)
+            data = msg_bytes[0]
             data = pickle.loads(data)
 
             for key, value in data.items():

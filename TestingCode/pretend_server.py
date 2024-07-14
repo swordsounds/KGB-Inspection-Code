@@ -1,10 +1,10 @@
 import socket, pickle, pygame
 
-server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
-
 SERVER = '127.0.0.1'
 CMDPORT = 8000 
+
+server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
 
 info = {
             "dpad_up": 0,
