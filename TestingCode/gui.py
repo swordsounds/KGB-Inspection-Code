@@ -281,6 +281,7 @@ class App(customtkinter.CTk):
         self.frame.grid(row=5, column=0, padx=(20, 0), pady=20, sticky="w")
         
         # video buttons
+        
         self.label = customtkinter.CTkLabel(self, text="Video Settings")
         self.label.grid(row=1, column=1, padx=20, pady=(50, 0), sticky="se")
 
