@@ -1,0 +1,7 @@
+Adafruit-Blinka
+PIL
+opencv-python
+pyshine
+pygame
+customtkinter
+tkinter
