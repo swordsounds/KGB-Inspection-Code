@@ -12,7 +12,7 @@ server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
 class VideoCaptureDevice:
     #highest res on pi is 1280, 720
     def __init__(self):
-        self.vid = cv2.VideoCapture('http://127.0.0.1:9000/stream.mjpg') #change ip in prod 192.168.0.19
+        self.vid = cv2.VideoCapture('http://192.168.0.19:9000/') #change ip in prod 192.168.0.19
         self.rec = None
 
     def get_frame(self) -> tuple[bool, list[int]]:
