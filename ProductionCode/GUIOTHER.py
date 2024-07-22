@@ -15,7 +15,6 @@ class VideoCaptureDevice:
                 self.rec.write(frame)
         resized = cv2.resize(frame, video_screen_dim, interpolation=cv2.INTER_AREA)
         return (ret, cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-        #return (ret, frame)
     
     def get_rec(self) -> object:
         unique_id = str(uuid.uuid4()).split('-')[0] #test code TEST THIS
@@ -31,15 +30,6 @@ class VideoCaptureDevice:
         if ret:
             unique_id = str(uuid.uuid4()).split('-')[0] #test code TEST THIS
             cv2.imwrite(f"{unique_id}.png", frame)
-    
-    # def __del__(self) -> None:
-    #     if self.vid.isOpened():
-    #         try:
-    #             self.vid.release()
-    #             self.rec.release()
-    #         except Exception as e:
-    #             print(e)
-
 
 class App(customtkinter.CTk):
 
@@ -98,6 +88,7 @@ class App(customtkinter.CTk):
 
         self.combobox = customtkinter.CTkComboBox(master=self, values=["camera 1", "camera 2", "camera 3", "camera 4"],
                                             command=self.combobox_callback)
+        self.combobox.set('camera 3')
         self.combobox.grid(row=3, column=4, sticky="e")
 
         # video device 
@@ -105,7 +96,7 @@ class App(customtkinter.CTk):
         
         self.canvas = tk.Canvas(self, width=1280, height=700, bg='gray', highlightthickness=0) #adjusted height by -20px to remove whitespace :/
         self.canvas.grid(row=1, column=4, rowspan=4, columnspan=20,padx=20, pady=20,sticky="nse")
-           
+        self.video_update() 
         
         # fullscreen after elements loaded
         # self.wm_attributes('-fullscreen', True) # uncomment in prod
@@ -140,7 +131,6 @@ class App(customtkinter.CTk):
     
     def program_take_picture(self):
         self.vid.get_pic()
-
 
     def max_window(self):
         # self.wm_attributes("-fullscreen", "True")
