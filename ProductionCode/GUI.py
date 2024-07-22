@@ -1,5 +1,5 @@
-import cv2, tkinter as tk, customtkinter
-from PIL import Image, ImageTk
+import cv2, tkinter as tk, customtkinter # type: ignore
+from PIL import Image, ImageTk # type: ignore
 from datetime import datetime
 import uuid
 

@@ -1,4 +1,4 @@
-from gpiozero import Robot, Motor
+from gpiozero import Robot, Motor # type: ignore
 import time
 import csv
 from threading import Thread
@@ -15,19 +15,18 @@ def go():
     print('ran')
     ROBOT.forward()
     time.sleep(5)
-
     ROBOT.stop()
-with open('data.csv', newline='') as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-             print(row.keys())
-while True:
-    with open('data.csv', newline='') as csvfile:
-        reader = csv.DictReader(csvfile)
 
-        for key, value in reader.items():
-                info[key] = value     
-        if reader['dpad_up'] == 1:
-            p = Thread(target=go())
-            p.start()
+def main():
+    while True:
+        with open('data.csv', newline='') as csvfile:
+            reader = csv.DictReader(csvfile)
 
+            for key, value in reader.items():
+                    info[key] = value     
+            if reader['dpad_up'] == 1:
+                p = Thread(target=go())
+                p.start()
+
+if __name__ == '__main__':
+    main()

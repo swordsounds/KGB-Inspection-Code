@@ -1,4 +1,4 @@
-import socket, pickle, pygame, time
+import socket, pickle, pygame, time # type: ignore
 
 pygame.init()
 

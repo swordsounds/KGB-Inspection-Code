@@ -1,4 +1,3 @@
-Adafruit-Blinka
 PIL
 opencv-python
 pyshine
