@@ -82,29 +82,29 @@ class App(customtkinter.CTk):
         
         # video buttons
         self.label = customtkinter.CTkLabel(self, text="Video Settings")
-        self.label.grid(row=1, column=1, padx=20, pady=(50, 0), sticky="se")
+        self.label.grid(row=1, column=4, padx=20, pady=(50, 0), sticky="se")
 
         self.record_on = customtkinter.CTkButton(master=self, command=self.program_take_recording, text="Rec.")
-        self.record_on.grid(row=2, column=1, padx=0, pady=(0,50), sticky="ne")
+        self.record_on.grid(row=2, column=4, padx=0, pady=(0,50), sticky="ne")
 
         self.record_off = customtkinter.CTkButton(master=self, command=self.program_stop_recording, text="Stop Rec.")
-        self.record_off.grid(row=2, column=1, padx=0, pady=0, sticky="e")
+        self.record_off.grid(row=2, column=4, padx=0, pady=0, sticky="e")
 
         self.button = customtkinter.CTkButton(master=self, command=self.program_take_picture, text="Take Pic.")
-        self.button.grid(row=2, column=1, padx=0, pady=(50, 0), sticky="se")
+        self.button.grid(row=2, column=4, padx=0, pady=(50, 0), sticky="se")
 
         # video selector 
         
 
         self.combobox = customtkinter.CTkComboBox(master=self, values=["camera 1", "camera 2", "camera 3", "camera 4"],
                                             command=self.combobox_callback)
-        self.combobox.grid(row=3, column=1, sticky="e")
+        self.combobox.grid(row=3, column=4, sticky="e")
 
         # video device 
 
         
         self.canvas = tk.Canvas(self, width=1280, height=700, bg='gray', highlightthickness=0) #adjusted height by -20px to remove whitespace :/
-        self.canvas.grid(row=1, column=17, rowspan=4, columnspan=20,padx=20, pady=20,sticky="nse")
+        self.canvas.grid(row=1, column=4, rowspan=4, columnspan=20,padx=20, pady=20,sticky="nse")
            
         
         # fullscreen after elements loaded
