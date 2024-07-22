@@ -14,7 +14,7 @@ class VideoCaptureDevice:
         if rec_toggle:
                 self.rec.write(frame)
         resized = cv2.resize(frame, video_screen_dim, interpolation=cv2.INTER_AREA)
-        return (ret, cv2.cvtColor(resized, cv2.COLOR_BGR2RGB))
+        return (ret, cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
         #return (ret, frame)
     
     def get_rec(self) -> object:
@@ -32,13 +32,13 @@ class VideoCaptureDevice:
             unique_id = str(uuid.uuid4()).split('-')[0] #test code TEST THIS
             cv2.imwrite(f"{unique_id}.png", frame)
     
-    def __del__(self) -> None:
-        if self.vid.isOpened():
-            try:
-                self.vid.release()
-                self.rec.release()
-            except Exception as e:
-                print(e)
+    # def __del__(self) -> None:
+    #     if self.vid.isOpened():
+    #         try:
+    #             self.vid.release()
+    #             self.rec.release()
+    #         except Exception as e:
+    #             print(e)
 
 
 class App(customtkinter.CTk):
@@ -102,21 +102,22 @@ class App(customtkinter.CTk):
 
         # video device 
 
-        self.vid = VideoCaptureDevice(None)
+        
         self.canvas = tk.Canvas(self, width=1280, height=700, bg='gray', highlightthickness=0) #adjusted height by -20px to remove whitespace :/
-        self.canvas.grid(row=1, column=4, rowspan=4, columnspan=20,padx=20, pady=20,sticky="nsew")
-        self.video_update()      
+        self.canvas.grid(row=1, column=17, rowspan=4, columnspan=20,padx=20, pady=20,sticky="nse")
+           
         
         # fullscreen after elements loaded
         # self.wm_attributes('-fullscreen', True) # uncomment in prod
         
     def combobox_callback(self, choice):
         if choice == 'camera 2':
-            self.vid = VideoCaptureDevice(0)
+            self.vid = VideoCaptureDevice('http://192.168.0.19:9000/stream.mjpg')
+            self.video_update() 
           
         elif choice == 'camera 3':
-            self.vid = VideoCaptureDevice('http://192.168.0.19:9000/stream.mjpg')
-        self.video_update() 
+            self.vid = VideoCaptureDevice('http://192.168.0.19:9001/stream.mjpg')
+            self.video_update() 
 
     def video_update(self):
         try:
@@ -124,7 +125,7 @@ class App(customtkinter.CTk):
             if ret:
                     self.photo = ImageTk.PhotoImage(image= Image.fromarray(frame))
                     self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)  
-            self.after(5, self.video_update)
+            self.after(1, self.video_update)
         except Exception as e:
             print(e)
 
@@ -144,6 +145,7 @@ class App(customtkinter.CTk):
     def max_window(self):
         # self.wm_attributes("-fullscreen", "True")
         self.geometry("{}x{}-{}+0".format(1920, 1080, 1928))
+        
     def mini_window(self):
         # self.wm_attributes("-fullscreen", "False")
         self.geometry("{}x{}-{}+0".format(300, 300, 1925))
