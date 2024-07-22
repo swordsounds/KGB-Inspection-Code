@@ -1,8 +1,8 @@
-import cv2, socket, pickle, csv, time
-from gpiozero import Robot, Motor
+import cv2, socket, pickle, csv, time #type: ignore
+from gpiozero import Robot, Motor #type: ignore
 from multiprocessing import Process
 from subprocess import call
-from picamera2 import Picamera2
+from picamera2 import Picamera2 #type: ignore
 from http import server
 import socketserver
 import logging
@@ -71,17 +71,7 @@ class StreamProps(server.BaseHTTPRequestHandler):
         else:
             self.send_error(404)
             self.end_headers()
-# def robo():
-#     ROBOT = Robot(right=Motor(19, 13), left=Motor(18, 12))
-#     ROBOT.stop()
-#     while info['dpad_up']:
-#             print(info)
-#             # ROBOT.forward()
-        
-       
-#     ROBOT.stop()
    
-
 def server_listener_start():
         print("Server-Client Connection started...")
         # right_motor = Motor(forward=19, backward=13)

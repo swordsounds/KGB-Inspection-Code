@@ -5,7 +5,7 @@ import uuid
 
 import socket, pickle
 
-SERVER = '192.168.0.19'
+SERVER = '192.168.0.19' #change ip in prod
 CMDPORT = 8000 
 
 server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -14,7 +14,8 @@ server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
 class VideoCaptureDevice:
     #highest res on pi is 1280, 720 using usb
     def __init__(self):
-        self.vid = cv2.VideoCapture('http://192.168.0.19:9000/stream.mjpg') #change ip in prod 192.168.0.19
+        #self.vid = cv2.VideoCapture('http://192.168.0.19:9000/stream.mjpg') #change ip in prod 192.168.0.19
+        self.vid = cv2.VideoCapture(None) #test code REMOVE
         self.rec = None
 
     def get_frame(self) -> tuple[bool, list[int]]:
@@ -22,7 +23,7 @@ class VideoCaptureDevice:
         if rec_toggle:
                 self.rec.write(frame)
         resized = cv2.resize(frame, video_screen_dim, interpolation=cv2.INTER_AREA)
-        return (ret, cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+        return (ret, cv2.cvtColor(resized, cv2.COLOR_BGR2RGB))
         #return (ret, frame)
     
     def get_rec(self) -> object:
@@ -204,16 +205,16 @@ class App(customtkinter.CTk):
     global rec_toggle, video_screen_dim
     rec_toggle = False
     video_screen_dim = (1280, 720)
-
+   
     def __init__(self):
         super().__init__()
 
         width = self.winfo_screenwidth()
         height = self.winfo_screenheight()
-        self.geometry("{}x{}".format(width, height))
+        self.geometry("{}x{}-{}+0".format(width, height, width))
         self.title("Control Panel")
         self.wm_iconbitmap(default=None)
-        self.minsize(300, 200)
+        # self.minsize(width, height)
         '''
         Background code, gotta fix buttons corner radius
         '''
@@ -290,7 +291,7 @@ class App(customtkinter.CTk):
         self.video_update()      
         
         # fullscreen after elements loaded
-        self.wm_attributes('-fullscreen', True)
+        # self.wm_attributes('-fullscreen', True) # uncomment in prod
     def video_update(self):
         try:
             ret, frame = self.vid.get_frame()        
@@ -320,10 +321,11 @@ class App(customtkinter.CTk):
         self.after(1000, self.time_start)
 
     def max_window(self):
-        self.wm_attributes("-fullscreen", "True")
-
+        # self.wm_attributes("-fullscreen", "True")
+        self.geometry("{}x{}-{}+0".format(1920, 1080, 1928))
     def mini_window(self):
-        self.wm_attributes("-fullscreen", "False")
+        # self.wm_attributes("-fullscreen", "False")
+        self.geometry("{}x{}-{}+0".format(300, 300, 1925))
     
     def close_window(self):
         self.destroy()
