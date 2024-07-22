@@ -1,7 +1,8 @@
-import cv2, pyshine as ps, socket, pickle, csv # type: ignore
+import cv2, socket, pickle, csv, time
+from gpiozero import Robot, Motor
 from multiprocessing import Process
 from subprocess import call
-from picamera2 import Picamera2 # type: ignore
+from picamera2 import Picamera2
 from http import server
 import socketserver
 import logging
@@ -21,7 +22,6 @@ HTML="""
             </body>
         </html>
     """
-
 info = {
    'dpad_up': 0,
     'dpad_down': 0,
@@ -32,7 +32,6 @@ info = {
     'gripper': 0,
     'arm': 0 
 }
-
 # capture = cv2.VideoCapture(0)
 # capture.set(cv2.CAP_PROP_FRAME_WIDTH,1280)
 # capture.set(cv2.CAP_PROP_FRAME_HEIGHT,720)
@@ -58,7 +57,7 @@ class StreamProps(server.BaseHTTPRequestHandler):
             try:
                 while True:
                     img = picam2.capture_array()
-                    frame = cv2.imencode('.JPEG', img, [cv2.IMWRITE_JPEG_QUALITY, 100000000])[1].tobytes()
+                    frame = cv2.imencode('.JPEG', img, [cv2.IMWRITE_JPEG_QUALITY, 80])[1].tobytes()
                     self.wfile.write(b'--FRAME\r\n')
                     self.send_header('Content-Type', 'image/jpeg')
                     self.send_header('Content-Length', len(frame))
@@ -72,7 +71,67 @@ class StreamProps(server.BaseHTTPRequestHandler):
         else:
             self.send_error(404)
             self.end_headers()
+# def robo():
+#     ROBOT = Robot(right=Motor(19, 13), left=Motor(18, 12))
+#     ROBOT.stop()
+#     while info['dpad_up']:
+#             print(info)
+#             # ROBOT.forward()
+        
+       
+#     ROBOT.stop()
+   
 
+def server_listener_start():
+        print("Server-Client Connection started...")
+        # right_motor = Motor(forward=19, backward=13)
+        # left_motor = Motor(forward=18, backward=12)
+        
+        ROBOT = Robot(right=Motor(19, 13), left=Motor(18, 12))
+        
+        server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        server.bind((SERVER, CMDPORT))
+        
+        fieldnames = ['dpad_up', 'dpad_down', 'dpad_left', 'dpad_right', 'tether', 'crawl','gripper', 'arm']
+        
+        while True:
+            x = server.recvfrom(2048)
+            data = x[0]
+            data = pickle.loads(data)
+         
+            for key, value in data.items():
+                info[key] = value           
+        
+            with open('data.csv', 'w') as csv_file: #test code REMOVE
+                csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+                csv_writer.writeheader()
+                csv_writer.writerow(info)
+            
+            if info['dpad_up'] == 1:
+                ROBOT.forward()
+            elif info['dpad_down'] == 1:
+                ROBOT.backward()
+            elif info['dpad_left'] == 1:
+                ROBOT.left()
+            elif info['dpad_right'] == 1:
+                ROBOT.right()
+            else:
+                ROBOT.stop()
+            
+            # right_motor.forward(speed=info['dpad_up'])
+            # left_motor.forward(speed=info['dpad_up'])
+            
+
+if __name__ == '__main__':
+    print("Video Client started...")
+    try:
+        ser= Process(target=server_listener_start)
+        ser.start()
+        streamer = Streamer((SERVER, VIDPORT), StreamProps)
+        print('Stream started at','http://{}:{}/stream.mjpg'.format(SERVER, VIDPORT))
+        streamer.serve_forever()
+    except Exception as e:
+        print(e)
     
 # class StreamProps(server.BaseHTTPRequestHandler):
 #     def set_Page(self,PAGE):
@@ -138,36 +197,3 @@ class StreamProps(server.BaseHTTPRequestHandler):
 #         else:
 #             self.send_error(404)
 #             self.end_headers()
-
-def server_listener_start():
-        print("Server-Client Connection started...")
-        server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        server.bind((SERVER, CMDPORT))
-        
-        fieldnames = ['dpad_up', 'dpad_down', 'dpad_left', 'dpad_right', 'tether', 'crawl','gripper', 'arm']
-        
-        while True:
-            x = server.recvfrom(2048)
-            data = x[0]
-            data = pickle.loads(data)
-         
-            for key, value in data.items():
-                info[key] = value           
-        
-            with open('data.csv', 'w') as csv_file: #test code REMOVE
-                csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
-                csv_writer.writeheader()
-                csv_writer.writerow(info)
-
-if __name__ == '__main__':
-    print("Video Client started...")
-    try:
-        ser= Process(target=server_listener_start)
-        ser.start()
-
-        streamer = Streamer((SERVER, VIDPORT), StreamProps)
-        print('Stream started at','http://{}:{}/stream.mjpg'.format(SERVER, VIDPORT))
-        streamer.serve_forever()
-    except Exception as e:
-        print(e)
-    

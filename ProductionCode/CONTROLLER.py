@@ -1,4 +1,4 @@
-import socket, pickle, pygame, time # type: ignore
+import socket, pickle, pygame, time
 
 pygame.init()
 
@@ -47,8 +47,7 @@ def controller():
                     del joysticks[event.instance_id]
                     print(f"Joystick disconnected")
 
-                if event.type == pygame.JOYBUTTONDOWN:
-                     print("Button pressed")
+             
             for joystick in joysticks.values():
             #     axes = joystick.get_numaxes()
             #     for i in range(0, 2):                 
