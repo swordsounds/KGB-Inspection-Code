@@ -72,18 +72,18 @@ class TetherButtonGroup(customtkinter.CTkFrame):
         self.button.grid(row=1, column=2, padx=20, pady=20)
 
     def tether_extend(self):  
-        info = {'tether': 'extend'}
+        info = {'TETH': 'EXT'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
         
     def tether_stop(self):
-        info = {'tether': 'stop'}
+        info = {'TETH': 'STOP'}
 
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
     
     def tether_retract(self):
-        info = {'tether': 'retract'}
+        info = {'TETH': 'RETR'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
@@ -112,22 +112,22 @@ class MovementButtonGroup(customtkinter.CTkFrame):
         self.button.grid(row=1, column=3, padx=20, pady=20)
 
     def crawler_forward(self):
-        info = {'crawl': 'forward'}
+        info = {'CRAWL': 'FORW'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
     def crawler_backward(self):
-        info = {'crawl': 'backward'}
+        info = {'CRAWL': 'BACK'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
     def crawler_right(self):
-        info = {'crawl': 'right'}
+        info = {'CRAWL': 'RIGHT'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
     def crawler_left(self):
-        info = {'crawl': 'left'}
+        info = {'CRAWL': 'LEFT'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
@@ -153,22 +153,22 @@ class GripperButtonGroup(customtkinter.CTkFrame):
         self.button.grid(row=1, column=3, padx=20, pady=20)
 
     def gripper_open(self):
-        info = {'gripper': 'open'}
+        info = {'GRIP': 'OPEN'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
     def gripper_close(self):
-        info = {'gripper': 'closed'}
+        info = {'GRIP': 'CLOSE'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
     def gripper_left(self):
-        info = {'gripper': 'left'}
+        info = {'GRIP': 'LEFT'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
         
     def gripper_right(self):
-        info = {'gripper': 'right'}
+        info = {'GRIP': 'RIGHT'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
@@ -188,17 +188,16 @@ class ArmButtonGroup(customtkinter.CTkFrame):
         self.button.grid(row=1, column=1, padx=20, pady=20)
 
     def arm_extend(self):
-        info = {'arm': 'extend'}
+        info = {'ARM': 'EXT'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
         
        
     def arm_retract(self):
-        info = {'arm': 'retract'}
+        info = {'ARM': 'RETR'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
       
-
 class App(customtkinter.CTk):
 
     customtkinter.set_appearance_mode("dark")
@@ -272,16 +271,16 @@ class App(customtkinter.CTk):
         
         # video buttons
         self.label = customtkinter.CTkLabel(self, text="Video Settings")
-        self.label.grid(row=1, column=1, padx=20, pady=(50, 0), sticky="se")
+        self.label.grid(row=2, column=1, padx=20, pady=(0, 0), sticky="ne")
 
         self.record_on = customtkinter.CTkButton(master=self, command=self.program_take_recording, text="Rec.")
-        self.record_on.grid(row=2, column=1, padx=0, pady=(0,50), sticky="ne")
+        self.record_on.grid(row=2, column=1, padx=0, pady=(50,50), sticky="ne")
 
         self.record_off = customtkinter.CTkButton(master=self, command=self.program_stop_recording, text="Stop Rec.")
-        self.record_off.grid(row=2, column=1, padx=0, pady=0, sticky="e")
+        self.record_off.grid(row=2, column=1, padx=0, pady=(100,0), sticky="ne")
 
         self.button = customtkinter.CTkButton(master=self, command=self.program_take_picture, text="Take Pic.")
-        self.button.grid(row=2, column=1, padx=0, pady=(50, 0), sticky="se")
+        self.button.grid(row=2, column=1, padx=0, pady=(150, 0), sticky="ne")
 
         # video device 
 
@@ -290,6 +289,10 @@ class App(customtkinter.CTk):
         self.canvas.grid(row=1, column=2, rowspan=4, columnspan=20,padx=20, pady=20,sticky="nsew")
         self.video_update()      
         
+        # info resetter
+
+        self.info_reset()
+
         # fullscreen after elements loaded
         # self.wm_attributes('-fullscreen', True) # uncomment in prod
     def video_update(self):
@@ -329,7 +332,13 @@ class App(customtkinter.CTk):
     
     def close_window(self):
         self.destroy()
-    
+
+    def info_reset(self):
+        info = {'TETH': '', 'CRAWL': '', 'GRIP': '', 'ARM': ''}
+        x_as_bytes = pickle.dumps(info)
+        server.sendto((x_as_bytes), (SERVER, CMDPORT))
+        self.after(50, self.reset)
+        
 if __name__ == "__main__":
     app = App()
     app.mainloop()

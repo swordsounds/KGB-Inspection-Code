@@ -44,7 +44,7 @@ class CameraButtonGroup(customtkinter.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
 
-        self.label = customtkinter.CTkLabel(self, text="PTZ Settings")
+        self.label = customtkinter.CTkLabel(self, text="ARDUCAM Settings")
         self.label.grid(row=0, column=0, pady=20)
 
         # 8x8 grid
@@ -60,25 +60,32 @@ class CameraButtonGroup(customtkinter.CTkFrame):
         self.button.grid(row=1, column=1, padx=20, pady=20)
 
         self.button = customtkinter.CTkButton(master=self, command=self.cam_three, text="Channel 3")
-        self.button.grid(row=1, column=2, padx=20, pady=20)
+        self.button.grid(row=2, column=0, padx=20, pady=20)
 
         self.button = customtkinter.CTkButton(master=self, command=self.cam_four, text="Channel 4")
-        self.button.grid(row=1, column=3, padx=20, pady=20)
+        self.button.grid(row=2, column=1, padx=20, pady=20)
+
+        self.button = customtkinter.CTkButton(master=self, command=self.auto_focus, text="Auto Focus")
+        self.button.grid(row=1, column=2,padx=20, pady=20)
 
     def cam_one(self):
-        info = {'CAMERA': 'ONE'}
+        info = {'ARDU_CAMERA': 'ONE'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
     def cam_two(self):
-        info = {'CAMERA': 'TWO'}
+        info = {'ARDU_CAMERA': 'TWO'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
     def cam_three(self):
-        info = {'CAMERA': 'THREE'}
+        info = {'ARDU_CAMERA': 'THREE'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
     def cam_four(self):
-        info = {'CAMERA': 'FOUR'}
+        info = {'ARDU_CAMERA': 'FOUR'}
+        x_as_bytes = pickle.dumps(info)
+        server.sendto((x_as_bytes), (SERVER, CMDPORT))
+    def auto_focus(self):
+        info = {'ARDU_CAMERA': 'FOUR'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
@@ -115,7 +122,7 @@ class PTZButtonGroup(customtkinter.CTkFrame):
         self.button = customtkinter.CTkButton(master=self, command=self.less_focus, text="Focus Out")
         self.button.grid(row=2, column=1, padx=20, pady=20)
 
-        self.button = customtkinter.CTkButton(master=self, command=self.auto_focus, text="Auto")
+        self.button = customtkinter.CTkButton(master=self, command=self.auto_focus, text="Auto Focus")
         self.button.grid(row=2, column=2, padx=20, pady=20)
         # zoom buttons
 
@@ -129,50 +136,51 @@ class PTZButtonGroup(customtkinter.CTkFrame):
         self.button.grid(row=3, column=2, padx=20, pady=20)
 
     def more_zoom(self):
-        info = {'focus': '+'}
+        info = {'PTZ_ZOOM': '+'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
     def less_zoom(self):
-        info = {'focus': '-'}
+        info = {'PTZ_ZOOM': '-'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
     def more_focus(self):
-        info = {'focus': '+'}
+        info = {'PTZ_FOCUS': '+'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
     def less_focus(self):
-        info = {'focus': '-'}
+        info = {'PTZ_FOCUS': '-'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
         
     def auto_focus(self):
-        info = {'focus': '='}
+        info = {'PTZ_FOCUS': 'AUTO'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
+
     def servo_left(self):
-        info = {'PTZ': 'LEFT'}
+        info = {'PTZ_MOVEMENT': 'LEFT'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
     def servo_right(self):
-        info = {'PTZ': 'RIGHT'}
+        info = {'PTZ_MOVEMENT': 'RIGHT'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
     
     def servo_up(self):
-        info = {'PTZ': 'UP'}
+        info = {'PTZ_MOVEMENT': 'UP'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
     def servo_down(self):
-        info = {'PTZ': 'DOWN'}
+        info = {'PTZ_MOVEMENT': 'DOWN'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
     
     def ir_cut(self):
-        info = {'ir_cut': 'True'}
+        info = {'IR_CUT': 'True'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
@@ -208,7 +216,7 @@ class App(customtkinter.CTk):
         # Camera buttons
 
         self.frame = CameraButtonGroup(master=self)
-        self.frame.grid(row=2, column=0, columnspan=1 ,padx=(20, 20), pady=20, sticky='ew')
+        self.frame.grid(row=2, column=0, columnspan=1 ,padx=(20, 20), pady=20, sticky='w')
 
         # PTZ buttons
 
@@ -228,29 +236,33 @@ class App(customtkinter.CTk):
         
         # video buttons
         self.label = customtkinter.CTkLabel(self, text="Video Settings")
-        self.label.grid(row=1, column=4, padx=20, pady=(50, 0), sticky="se")
+        self.label.grid(row=2, column=0, padx=20, pady=(0, 0), sticky="ne")
 
         self.record_on = customtkinter.CTkButton(master=self, command=self.program_take_recording, text="Rec.")
-        self.record_on.grid(row=2, column=4, padx=0, pady=(0,50), sticky="ne")
+        self.record_on.grid(row=2, column=0, padx=0, pady=(50,50), ipadx=10, sticky="ne")
 
         self.record_off = customtkinter.CTkButton(master=self, command=self.program_stop_recording, text="Stop Rec.")
-        self.record_off.grid(row=2, column=4, padx=0, pady=0, sticky="e")
+        self.record_off.grid(row=2, column=0, padx=0, pady=(100,0), ipadx=10, sticky="ne")
 
         self.button = customtkinter.CTkButton(master=self, command=self.program_take_picture, text="Take Pic.")
-        self.button.grid(row=2, column=4, padx=0, pady=(50, 0), sticky="se")
+        self.button.grid(row=2, column=0, padx=0, pady=(150, 0), ipadx=10, sticky="ne")
 
-        # # camera selector 
-        # self.combobox = customtkinter.CTkComboBox(master=self, values=["Pan Tilt.", "Quad. Cam."],
-        #                                     command=self.combobox_callback)
-        # self.combobox.set('Pan Tilt.')
-        # self.combobox.grid(row=3, column=4, sticky="e")
+        # camera selector 
+        self.combobox = customtkinter.CTkComboBox(master=self, values=["Pan Tilt.", "Quad. Cam."],
+                                            command=self.combobox_callback)
+        self.combobox.set('Pan Tilt.')
+        self.combobox.grid(row=2, column=0, pady=(200, 0), ipadx=10,sticky="ne")
 
         # video device 
 
         
         self.canvas = tk.Canvas(self, width=1280, height=700, bg='gray', highlightthickness=0) #adjusted height by -20px to remove whitespace :/
-        self.canvas.grid(row=1, column=5, rowspan=4, columnspan=20,padx=20, pady=20,sticky="nse")
+        self.canvas.grid(row=1, column=1, rowspan=4, columnspan=20,padx=20, pady=20,sticky="nsew")
         self.video_update() 
+        
+        # info resetter
+
+        self.info_reset()
         
         # fullscreen after elements loaded
         # self.wm_attributes('-fullscreen', True) # uncomment in prod
@@ -296,6 +308,13 @@ class App(customtkinter.CTk):
     
     def close_window(self):
         self.destroy()
+    
+    def info_reset(self):
+        info = {'PTZ_ZOOM': '', 'PTZ_FOCUS': '', 'PTZ_MOVEMENT': ''}
+        x_as_bytes = pickle.dumps(info)
+        server.sendto((x_as_bytes), (SERVER, CMDPORT))
+        self.after(50, self.reset)
+
 if __name__ == "__main__":
     app = App()
     app.mainloop()
