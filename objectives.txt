@@ -1,12 +1,5 @@
-buttons to create:
-- wristin
-- wristout
+- Code refinery and optimizations.
 
-use os to make unique filenames, and get the path
+- GUI design changes
 
-Make second cv frame fit 
-other monitor
-
-Multi camera support
-
-Frames for 4 more other cameras
+-
