@@ -307,11 +307,13 @@ class App(customtkinter.CTk):
 
     def program_take_recording(self):
         global rec_toggle
+        self.record_on.configure(state='disabled')
         self.vid.get_rec()
         rec_toggle = True
 
     def program_stop_recording(self):
         global rec_toggle
+        self.record_on.configure(state='enabled')
         rec_toggle = False
     
     def program_take_picture(self):
