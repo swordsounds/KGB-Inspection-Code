@@ -13,9 +13,9 @@ server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
 
 class VideoCaptureDevice:
     #highest res on pi is 1280, 720 using usb
-    def __init__(self):
-        # self.vid = cv2.VideoCapture('http://192.168.0.19:9000/stream.mjpg') #change ip in prod 192.168.0.19
-        self.vid = cv2.VideoCapture(None) #test code REMOVE
+    video_link = None
+    def __init__(self, video_link):
+        self.vid = cv2.VideoCapture(video_link) #change ip in prod 192.168.0.19
         self.rec = None
 
     def get_frame(self) -> tuple[bool, list[int]]:
@@ -23,8 +23,7 @@ class VideoCaptureDevice:
         if rec_toggle:
                 self.rec.write(frame)
         resized = cv2.resize(frame, video_screen_dim, interpolation=cv2.INTER_AREA)
-        return (ret, cv2.cvtColor(resized, cv2.COLOR_BGR2RGB))
-        #return (ret, frame)
+        return (ret, cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
     
     def get_rec(self) -> object:
         unique_id = str(uuid.uuid4()).split('-')[0] #test code TEST THIS
@@ -40,164 +39,142 @@ class VideoCaptureDevice:
         if ret:
             unique_id = str(uuid.uuid4()).split('-')[0] #test code TEST THIS
             cv2.imwrite(f"{unique_id}.png", frame)
-    
-    def __del__(self) -> None:
-        if self.vid.isOpened():
-            try:
-                self.vid.release()
-                self.rec.release()
-            except Exception as e:
-                print(e)
 
-class TetherButtonGroup(customtkinter.CTkFrame):
+class CameraButtonGroup(customtkinter.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
 
-        self.extend = 0 # test code REMOVE
+        self.label = customtkinter.CTkLabel(self, text="PTZ Settings")
+        self.label.grid(row=0, column=0, pady=20)
 
-        # tether buttons
+        # 8x8 grid
+        self.grid_rowconfigure(tuple(range(9)), weight=1)
+        self.grid_columnconfigure(tuple(range(9)), weight=1)
+        
+        # Camera selector buttons
+
+        self.button = customtkinter.CTkButton(master=self, command=self.cam_one, text="Channel 1")
+        self.button.grid(row=1, column=0, padx=20, pady=20)
+
+        self.button = customtkinter.CTkButton(master=self, command=self.cam_two, text="Channel 2")
+        self.button.grid(row=1, column=1, padx=20, pady=20)
+
+        self.button = customtkinter.CTkButton(master=self, command=self.cam_three, text="Channel 3")
+        self.button.grid(row=1, column=2, padx=20, pady=20)
+
+        self.button = customtkinter.CTkButton(master=self, command=self.cam_four, text="Channel 4")
+        self.button.grid(row=1, column=3, padx=20, pady=20)
+
+    def cam_one(self):
+        info = {'CAMERA': 'ONE'}
+        x_as_bytes = pickle.dumps(info)
+        server.sendto((x_as_bytes), (SERVER, CMDPORT))
+    def cam_two(self):
+        info = {'CAMERA': 'TWO'}
+        x_as_bytes = pickle.dumps(info)
+        server.sendto((x_as_bytes), (SERVER, CMDPORT))
+    def cam_three(self):
+        info = {'CAMERA': 'THREE'}
+        x_as_bytes = pickle.dumps(info)
+        server.sendto((x_as_bytes), (SERVER, CMDPORT))
+    def cam_four(self):
+        info = {'CAMERA': 'FOUR'}
+        x_as_bytes = pickle.dumps(info)
+        server.sendto((x_as_bytes), (SERVER, CMDPORT))
+
+class PTZButtonGroup(customtkinter.CTkFrame):
+    def __init__(self, master):
+        super().__init__(master)
+
+        self.label = customtkinter.CTkLabel(self, text="PTZ Settings")
+        self.label.grid(row=0, column=0, pady=20)
+        
+        # 8x8 grid
         self.grid_rowconfigure(tuple(range(9)), weight=1)
         self.grid_columnconfigure(tuple(range(9)), weight=1)
 
-        self.label = customtkinter.CTkLabel(self, text="Tether")
-        self.label.grid(row=0, column=0, pady=20)
+        # PTZ buttons
 
-        self.button = customtkinter.CTkButton(master=self, command=self.tether_extend, text="Extend Tether")
+        self.button = customtkinter.CTkButton(master=self, command=self.servo_up, text="Up")
         self.button.grid(row=1, column=0, padx=20, pady=20)
 
-        self.button = customtkinter.CTkButton(master=self, command=self.tether_stop, text="Stop Tether")
+        self.button = customtkinter.CTkButton(master=self, command=self.servo_right, text="Right")
         self.button.grid(row=1, column=1, padx=20, pady=20)
 
-        self.button = customtkinter.CTkButton(master=self, command=self.tether_retract, text="Retract Tether")
+        self.button = customtkinter.CTkButton(master=self, command=self.servo_down, text="Down")
         self.button.grid(row=1, column=2, padx=20, pady=20)
 
-    def tether_extend(self):  
-        info = {'tether': 'extend'}
+        self.button = customtkinter.CTkButton(master=self, command=self.servo_left, text="Left")
+        self.button.grid(row=1, column=3, padx=20, pady=20)
+
+        # focus buttons
+
+        self.button = customtkinter.CTkButton(master=self, command=self.more_focus, text="Focus In")
+        self.button.grid(row=2, column=0, padx=20, pady=20)
+
+        self.button = customtkinter.CTkButton(master=self, command=self.less_focus, text="Focus Out")
+        self.button.grid(row=2, column=1, padx=20, pady=20)
+
+        self.button = customtkinter.CTkButton(master=self, command=self.auto_focus, text="Auto")
+        self.button.grid(row=2, column=2, padx=20, pady=20)
+        # zoom buttons
+
+        self.button = customtkinter.CTkButton(master=self, command=self.more_zoom, text="Zoom In")
+        self.button.grid(row=3, column=0, padx=20, pady=20)
+
+        self.button = customtkinter.CTkButton(master=self, command=self.less_zoom, text="Zoom Out")
+        self.button.grid(row=3, column=1, padx=20, pady=20)
+        # ir cut
+        self.button = customtkinter.CTkButton(master=self, command=self.ir_cut, text="IR Cut")
+        self.button.grid(row=3, column=2, padx=20, pady=20)
+
+    def more_zoom(self):
+        info = {'focus': '+'}
+        x_as_bytes = pickle.dumps(info)
+        server.sendto((x_as_bytes), (SERVER, CMDPORT))
+
+    def less_zoom(self):
+        info = {'focus': '-'}
+        x_as_bytes = pickle.dumps(info)
+        server.sendto((x_as_bytes), (SERVER, CMDPORT))
+    def more_focus(self):
+        info = {'focus': '+'}
+        x_as_bytes = pickle.dumps(info)
+        server.sendto((x_as_bytes), (SERVER, CMDPORT))
+
+    def less_focus(self):
+        info = {'focus': '-'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
         
-    def tether_stop(self):
-        info = {'tether': 'stop'}
+    def auto_focus(self):
+        info = {'focus': '='}
+        x_as_bytes = pickle.dumps(info)
+        server.sendto((x_as_bytes), (SERVER, CMDPORT))
+    def servo_left(self):
+        info = {'PTZ': 'LEFT'}
+        x_as_bytes = pickle.dumps(info)
+        server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
+    def servo_right(self):
+        info = {'PTZ': 'RIGHT'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
     
-    def tether_retract(self):
-        info = {'tether': 'retract'}
+    def servo_up(self):
+        info = {'PTZ': 'UP'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
-class MovementButtonGroup(customtkinter.CTkFrame):
-    def __init__(self, master):
-        super().__init__(master)
-
-        # movement buttons
-
-        self.grid_rowconfigure(tuple(range(9)), weight=1)
-        self.grid_columnconfigure(tuple(range(9)), weight=1)
-
-        self.label = customtkinter.CTkLabel(self, text="Movement")
-        self.label.grid(row=0, column=0, pady=20)
-
-        self.button = customtkinter.CTkButton(master=self, command=self.crawler_forward, text="Forw.")
-        self.button.grid(row=1, column=0, padx=20, pady=20)
-
-        self.button = customtkinter.CTkButton(master=self, command=self.crawler_right, text="Right")
-        self.button.grid(row=1, column=1, padx=20, pady=20)
-
-        self.button = customtkinter.CTkButton(master=self, command=self.crawler_backward, text="Back")
-        self.button.grid(row=1, column=2, padx=20, pady=20)
-
-        self.button = customtkinter.CTkButton(master=self, command=self.crawler_left, text="Left")
-        self.button.grid(row=1, column=3, padx=20, pady=20)
-
-    def crawler_forward(self):
-        info = {'crawl': 'forward'}
+    def servo_down(self):
+        info = {'PTZ': 'DOWN'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
-
-    def crawler_backward(self):
-        info = {'crawl': 'backward'}
+    
+    def ir_cut(self):
+        info = {'ir_cut': 'True'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
-
-    def crawler_right(self):
-        info = {'crawl': 'right'}
-        x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (SERVER, CMDPORT))
-
-    def crawler_left(self):
-        info = {'crawl': 'left'}
-        x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (SERVER, CMDPORT))
-
-class GripperButtonGroup(customtkinter.CTkFrame):
-    def __init__(self, master):
-        super().__init__(master)
-
-        self.label = customtkinter.CTkLabel(self, text="Claw")
-        self.label.grid(row=0, column=0, pady=20)
-
-        # gripper buttons
-
-        self.button = customtkinter.CTkButton(master=self, command=self.gripper_open, text="Claw Open")
-        self.button.grid(row=1, column=0, padx=20, pady=20)
-        
-        self.button = customtkinter.CTkButton(master=self, command=self.gripper_close, text="Claw Close")
-        self.button.grid(row=1, column=1, padx=20, pady=20)
-
-        self.button = customtkinter.CTkButton(master=self, command=self.gripper_right, text="Claw Right")
-        self.button.grid(row=1, column=2, padx=20, pady=20)
-        
-        self.button = customtkinter.CTkButton(master=self, command=self.gripper_left, text="Claw Left")
-        self.button.grid(row=1, column=3, padx=20, pady=20)
-
-    def gripper_open(self):
-        info = {'gripper': 'open'}
-        x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (SERVER, CMDPORT))
-
-    def gripper_close(self):
-        info = {'gripper': 'closed'}
-        x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (SERVER, CMDPORT))
-
-    def gripper_left(self):
-        info = {'gripper': 'left'}
-        x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (SERVER, CMDPORT))
-        
-    def gripper_right(self):
-        info = {'gripper': 'right'}
-        x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (SERVER, CMDPORT))
-
-class ArmButtonGroup(customtkinter.CTkFrame):
-    def __init__(self, master):
-        super().__init__(master)
-
-        self.label = customtkinter.CTkLabel(self, text="Arm")
-        self.label.grid(row=0, column=0, pady=20)
-
-        # arm buttons
-
-        self.button = customtkinter.CTkButton(master=self, command=self.arm_extend, text="Extend Arm")
-        self.button.grid(row=1, column=0, padx=20, pady=20)
-
-        self.button = customtkinter.CTkButton(master=self, command=self.arm_retract, text="Retract Arm")
-        self.button.grid(row=1, column=1, padx=20, pady=20)
-
-    def arm_extend(self):
-        info = {'arm': 'extend'}
-        x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (SERVER, CMDPORT))
-        
-       
-    def arm_retract(self):
-        info = {'arm': 'retract'}
-        x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (SERVER, CMDPORT))
-      
 
 class App(customtkinter.CTk):
 
@@ -212,32 +189,31 @@ class App(customtkinter.CTk):
         width = self.winfo_screenwidth()
         height = self.winfo_screenheight()
         self.geometry("{}x{}-{}+0".format(width, height, width + 8)) # added 8 pixels translation due to weird scaling :/
-        self.title("Control Panel")
+        self.title("Video Panel")
         self.wm_iconbitmap(default=None)
         # self.minsize(width, height)
         '''
         Background code, gotta fix buttons corner radius
+       
+        background_image = customtkinter.CTkImage(Image.open("carbon-fiber-manufacturing-848x500.jpg"), size=(width, height))
+        bg_lbl = customtkinter.CTkLabel(self, text="", image=background_image)
+        bg_lbl.place(x=0, y=-1)
         '''
-        # background_image = customtkinter.CTkImage(Image.open("carbon-fiber-manufacturing-848x500.jpg"), size=(width, height))
-        # bg_lbl = customtkinter.CTkLabel(self, text="", image=background_image)
-        # bg_lbl.place(x=0, y=-1)
+        
         # 20x20 grid system
 
         self.grid_rowconfigure(tuple(range(21)), weight=1)
         self.grid_columnconfigure(tuple(range(21)), weight=1)
+        
+        # Camera buttons
 
-        # logo 
+        self.frame = CameraButtonGroup(master=self)
+        self.frame.grid(row=2, column=0, columnspan=1 ,padx=(20, 20), pady=20, sticky='ew')
 
-        # kgb_logo = customtkinter.CTkImage(Image.open("logo.jpg"), size=(125, 75))
-        # logo = customtkinter.CTkLabel(self, text="", image=kgb_logo)
-        # logo.grid(row=0, column=0, sticky="n")
+        # PTZ buttons
 
-        # time display 
-
-        self.time = customtkinter.CTkTextbox(master=self,height=10, font=("", 20))
-        self.time.grid(row=0, column=0, padx=20, pady=20, sticky="w")
-        self.time.insert("0.0", 'CURRENT_TIME')
-        self.time_start()
+        self.frame = PTZButtonGroup(master=self)
+        self.frame.grid(row=3, column=0, rowspan=1, columnspan=1, padx=(20, 20), pady=20, sticky='ew')
 
         # window buttons
 
@@ -249,56 +225,52 @@ class App(customtkinter.CTk):
 
         self.button = customtkinter.CTkButton(master=self, command=self.close_window, text="Close")
         self.button.grid(row=0, column=20, padx=(0, 20), pady=20, sticky="e")
-
-        # tether buttons
-
-        self.frame = TetherButtonGroup(master=self)
-        self.frame.grid(row=2, column=0, columnspan=1, padx=(20, 0), pady=20, sticky="ew")
-
-        # movement frame
-
-        self.frame = MovementButtonGroup(master=self)
-        self.frame.grid(row=3, column=0, columnspan=2, padx=(20, 0), pady=20, sticky="ew")
-
-        # gripper frame
-
-        self.frame = GripperButtonGroup(master=self)
-        self.frame.grid(row=4, column=0, columnspan=2, padx=(20, 0), pady=20, sticky="ew")
-
-        # arm frame
-
-        self.frame = ArmButtonGroup(master=self)
-        self.frame.grid(row=5, column=0, padx=(20, 0), pady=20, sticky="w")
         
         # video buttons
         self.label = customtkinter.CTkLabel(self, text="Video Settings")
-        self.label.grid(row=1, column=1, padx=20, pady=(50, 0), sticky="se")
+        self.label.grid(row=1, column=4, padx=20, pady=(50, 0), sticky="se")
 
         self.record_on = customtkinter.CTkButton(master=self, command=self.program_take_recording, text="Rec.")
-        self.record_on.grid(row=2, column=1, padx=0, pady=(0,50), sticky="ne")
+        self.record_on.grid(row=2, column=4, padx=0, pady=(0,50), sticky="ne")
 
         self.record_off = customtkinter.CTkButton(master=self, command=self.program_stop_recording, text="Stop Rec.")
-        self.record_off.grid(row=2, column=1, padx=0, pady=0, sticky="e")
+        self.record_off.grid(row=2, column=4, padx=0, pady=0, sticky="e")
 
         self.button = customtkinter.CTkButton(master=self, command=self.program_take_picture, text="Take Pic.")
-        self.button.grid(row=2, column=1, padx=0, pady=(50, 0), sticky="se")
+        self.button.grid(row=2, column=4, padx=0, pady=(50, 0), sticky="se")
+
+        # # camera selector 
+        # self.combobox = customtkinter.CTkComboBox(master=self, values=["Pan Tilt.", "Quad. Cam."],
+        #                                     command=self.combobox_callback)
+        # self.combobox.set('Pan Tilt.')
+        # self.combobox.grid(row=3, column=4, sticky="e")
 
         # video device 
 
-        self.vid = VideoCaptureDevice()
+        
         self.canvas = tk.Canvas(self, width=1280, height=700, bg='gray', highlightthickness=0) #adjusted height by -20px to remove whitespace :/
-        self.canvas.grid(row=1, column=2, rowspan=4, columnspan=20,padx=20, pady=20,sticky="nsew")
-        self.video_update()      
+        self.canvas.grid(row=1, column=5, rowspan=4, columnspan=20,padx=20, pady=20,sticky="nse")
+        self.video_update() 
         
         # fullscreen after elements loaded
         # self.wm_attributes('-fullscreen', True) # uncomment in prod
+        
+    def combobox_callback(self, choice):
+        if choice == 'Pan Tilt.':
+            self.vid = VideoCaptureDevice('http://192.168.0.19:9000/stream.mjpg')
+            self.video_update() 
+          
+        elif choice == 'Quad. Cam.':
+            self.vid = VideoCaptureDevice('http://192.168.0.19:9001/stream.mjpg')
+            self.video_update() 
+
     def video_update(self):
         try:
             ret, frame = self.vid.get_frame()        
             if ret:
                     self.photo = ImageTk.PhotoImage(image= Image.fromarray(frame))
                     self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)  
-            self.after(5, self.video_update)
+            self.after(1, self.video_update)
         except Exception as e:
             print(e)
 
@@ -314,22 +286,16 @@ class App(customtkinter.CTk):
     def program_take_picture(self):
         self.vid.get_pic()
 
-    def time_start(self):
-        current_time: str = datetime.now().strftime("%H:%M:%S")
-        self.time.delete("0.0", "end")
-        self.time.insert("0.0", current_time)
-        self.after(1000, self.time_start)
-
     def max_window(self):
         # self.wm_attributes("-fullscreen", "True")
         self.geometry("{}x{}-{}+0".format(1920, 1080, 1928))
+        
     def mini_window(self):
         # self.wm_attributes("-fullscreen", "False")
         self.geometry("{}x{}-{}+0".format(300, 300, 1925))
     
     def close_window(self):
         self.destroy()
-    
 if __name__ == "__main__":
     app = App()
     app.mainloop()
