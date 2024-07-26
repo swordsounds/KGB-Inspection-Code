@@ -1,11 +1,10 @@
 import cv2, tkinter as tk, customtkinter # type: ignore
 from PIL import Image, ImageTk # type: ignore
-from datetime import datetime
 import uuid
 
 import socket, pickle
 
-SERVER = '192.168.0.19' #change ip in prod
+SERVER = '192.168.0.19' #change ip to static ip in prod
 CMDPORT = 8000 
 
 server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -23,7 +22,7 @@ class VideoCaptureDevice:
         if rec_toggle:
                 self.rec.write(frame)
         resized = cv2.resize(frame, video_screen_dim, interpolation=cv2.INTER_AREA)
-        return (ret, cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+        return (ret, cv2.cvtColor(resized, cv2.COLOR_BGR2RGB))
     
     def get_rec(self) -> object:
         unique_id = str(uuid.uuid4()).split('-')[0] #test code TEST THIS
@@ -72,18 +71,22 @@ class CameraButtonGroup(customtkinter.CTkFrame):
         info = {'ARDU_CAMERA': 'ONE'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
+
     def cam_two(self):
         info = {'ARDU_CAMERA': 'TWO'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
+
     def cam_three(self):
         info = {'ARDU_CAMERA': 'THREE'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
+
     def cam_four(self):
         info = {'ARDU_CAMERA': 'FOUR'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
+
     def auto_focus(self):
         info = {'ARDU_CAMERA': 'FOUR'}
         x_as_bytes = pickle.dumps(info)
@@ -248,9 +251,9 @@ class App(customtkinter.CTk):
         self.button.grid(row=2, column=0, padx=0, pady=(150, 0), ipadx=10, sticky="ne")
 
         # camera selector 
-        self.combobox = customtkinter.CTkComboBox(master=self, values=["Pan Tilt.", "Quad. Cam."],
+        self.combobox = customtkinter.CTkComboBox(master=self, values=["ARDUCam.", "PTZ Cam."],
                                             command=self.combobox_callback)
-        self.combobox.set('Pan Tilt.')
+        self.combobox.set('Select Camera')
         self.combobox.grid(row=2, column=0, pady=(200, 0), ipadx=10,sticky="ne")
 
         # video device 
@@ -263,18 +266,17 @@ class App(customtkinter.CTk):
         # info resetter
 
         self.info_reset()
-        
+
         # fullscreen after elements loaded
         # self.wm_attributes('-fullscreen', True) # uncomment in prod
         
     def combobox_callback(self, choice):
-        if choice == 'Pan Tilt.':
+        if choice == 'PTZ Cam.':
             self.vid = VideoCaptureDevice('http://192.168.0.19:9000/stream.mjpg')
-            self.video_update() 
           
-        elif choice == 'Quad. Cam.':
+        elif choice == 'ARDUCam.':
             self.vid = VideoCaptureDevice('http://192.168.0.19:9001/stream.mjpg')
-            self.video_update() 
+        self.video_update() 
 
     def video_update(self):
         try:
@@ -313,7 +315,7 @@ class App(customtkinter.CTk):
         info = {'PTZ_ZOOM': '', 'PTZ_FOCUS': '', 'PTZ_MOVEMENT': ''}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
-        self.after(50, self.reset)
+        self.after(50, self.info_reset)
 
 if __name__ == "__main__":
     app = App()

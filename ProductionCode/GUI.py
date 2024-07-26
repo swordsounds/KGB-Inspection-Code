@@ -337,8 +337,8 @@ class App(customtkinter.CTk):
         info = {'TETH': '', 'CRAWL': '', 'GRIP': '', 'ARM': ''}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
-        self.after(50, self.reset)
-        
+        self.after(50, self.info_reset)
+
 if __name__ == "__main__":
     app = App()
     app.mainloop()
