@@ -259,7 +259,7 @@ class App(customtkinter.CTk):
         # video device 
 
         
-        self.canvas = tk.Canvas(self, width=1280, height=700, bg='gray', highlightthickness=0) #adjusted height by -20px to remove whitespace :/
+        self.canvas = tk.Canvas(self, width=1280, height=625, bg='gray', highlightthickness=0) #adjusted height by -95px to remove whitespace :/
         self.canvas.grid(row=1, column=1, rowspan=4, columnspan=20,padx=20, pady=20,sticky="nsew")
         self.video_update() 
         
