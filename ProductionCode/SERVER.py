@@ -217,7 +217,6 @@ def video_0_start():
     ardu_cam.preview_configuration.main.size=(1920,1080) #full screen : 3280 2464, 1920x1080 for 1, 2464x1736 for 0
     ardu_cam.preview_configuration.main.format = "RGB888" #8 bits
     ardu_cam.preview_configuration.raw.format = 'SRGGB8'
-    ardu_cam.set_controls({"AfMode":controls.AfModeEnum.Continuous})
     ardu_cam.set_controls({"FrameDurationLimits": (1, 1)})
     ardu_cam.start()
 
@@ -265,6 +264,5 @@ if __name__ == '__main__':
         vid_0_str.start()
         vid_1_str.start()
         vid_2_str.start()
-    
     except Exception as e:
         print(e)

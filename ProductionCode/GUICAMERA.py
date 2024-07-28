@@ -229,8 +229,6 @@ class App(customtkinter.CTk):
     global rec_toggle, video_screen_dim, image_x, image_y
     rec_toggle = False
     video_screen_dim = (1280, 720)
-    image_x = 0
-    image_y = 0
    
     def __init__(self):
         super().__init__()
@@ -298,6 +296,7 @@ class App(customtkinter.CTk):
         self.canvas = tk.Canvas(self, width=1280, height=625, bg='gray', highlightthickness=0) #adjusted height by -95px to remove whitespace :/
         self.canvas.grid(row=1, column=1, rowspan=4, columnspan=20,padx=20, pady=20,sticky="nsew")
         self.video_update()
+
         # info resetter
 
         self.info_reset()
@@ -310,7 +309,6 @@ class App(customtkinter.CTk):
             self.vid = VideoCaptureDevice('http://192.168.0.19:9000/stream.mjpg')
 
     def video_update(self):
-
         try:
             ret, frame = self.vid.get_frame()        
             if ret:

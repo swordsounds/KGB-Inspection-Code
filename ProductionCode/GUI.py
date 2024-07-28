@@ -25,9 +25,9 @@ class VideoCaptureDevice:
         return (ret, cv2.cvtColor(resized, cv2.COLOR_BGR2RGB))
     
     def get_rec(self) -> object:
-        unique_id = str(uuid.uuid4()).split('-')[0] #test code TEST THIS
+        unique_id = str(uuid.uuid4()).split('-')[0]
         file_name = f"{unique_id}.avi"
-        fourcc = cv2.VideoWriter_fourcc(*'FMP4')#*'FMP4'
+        fourcc = cv2.VideoWriter_fourcc(*'FMP4')
         fps = 10.0
         res = (1280, 720)
         self.rec = cv2.VideoWriter(file_name, fourcc, fps, res)
