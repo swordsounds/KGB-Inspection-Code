@@ -4,3 +4,11 @@ pyshine
 pygame
 customtkinter
 tkinter
+uuid
+pickle
+socket
+socketserver
+datetime
+logging
+multiprocessing
+subprocess
