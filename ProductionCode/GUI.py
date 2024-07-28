@@ -14,7 +14,7 @@ server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
 class VideoCaptureDevice:
     #highest res on pi is 1280, 720 using usb
     def __init__(self):
-        self.vid = cv2.VideoCapture('http://192.168.0.19:9000/stream.mjpg') #change ip in prod 192.168.0.19
+        self.vid = cv2.VideoCapture('http://192.168.0.19:9200/stream.mjpg') #change ip in prod 192.168.0.19
         # self.vid = cv2.VideoCapture(None) #test code REMOVE
         self.rec = None
 
@@ -227,7 +227,7 @@ class App(customtkinter.CTk):
 
         # logo 
 
-        kgb_logo = customtkinter.CTkImage(Image.open("ProductionCode\KGB_Logo.png"), size=(160, 75))
+        kgb_logo = customtkinter.CTkImage(Image.open("KGB_Logo.png"), size=(160, 75))
         logo = customtkinter.CTkLabel(self, text="", image=kgb_logo)
         logo.grid(row=5, column=20, sticky="ne")
 

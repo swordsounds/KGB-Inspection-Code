@@ -22,8 +22,8 @@ class VideoCaptureDevice:
         ret, frame = self.vid.read()
         if rec_toggle:
                 self.rec.write(frame)
-        resized = cv2.resize(frame, (1130, 720), interpolation=cv2.INTER_AREA)
-        return (True, cv2.cvtColor(resized, cv2.COLOR_BGR2RGB))
+        resized = cv2.resize(frame, (video_screen_dim[0] - 150, video_screen_dim[1]), interpolation=cv2.INTER_AREA)
+        return (ret, cv2.cvtColor(resized, cv2.COLOR_BGR2RGB))
     
     def get_rec(self) -> object:
         unique_id = str(uuid.uuid4()).split('-')[0] #test code TEST THIS
@@ -97,7 +97,7 @@ class CameraButtonGroup(customtkinter.CTkFrame):
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
     def auto_focus(self):
-        info = {'ARDU_CAMERA': 'FOUR'}
+        info = {'ARDU_CAMERA': 'AUTO'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
@@ -199,9 +199,11 @@ class PTZButtonGroup(customtkinter.CTkFrame):
 class App(customtkinter.CTk):
 
     customtkinter.set_appearance_mode("dark")
-    global rec_toggle, video_screen_dim
+    global rec_toggle, video_screen_dim, image_x, image_y
     rec_toggle = False
     video_screen_dim = (1280, 720)
+    image_x = 0
+    image_y = 0
    
     def __init__(self):
         super().__init__()
@@ -239,7 +241,7 @@ class App(customtkinter.CTk):
 
         self.frame = PTZButtonGroup(master=self)
         self.frame.grid(row=3, column=0, rowspan=1, columnspan=1, padx=(20, 20), pady=20, sticky='ew')
-
+    
         # window buttons
 
         self.button = customtkinter.CTkButton(master=self, command=self.max_window, text="Maximize")
@@ -271,9 +273,10 @@ class App(customtkinter.CTk):
         self.combobox.grid(row=2, column=0, pady=(200, 0), ipadx=10,sticky="ne")
 
         # video device 
+        self.vid = VideoCaptureDevice('http://192.168.0.19:9000/stream.mjpg')
         self.canvas = tk.Canvas(self, width=1280, height=625, bg='gray', highlightthickness=0) #adjusted height by -95px to remove whitespace :/
         self.canvas.grid(row=1, column=1, rowspan=4, columnspan=20,padx=20, pady=20,sticky="nsew")
-        
+        self.video_update()
         # info resetter
 
         self.info_reset()
@@ -282,21 +285,19 @@ class App(customtkinter.CTk):
         # self.wm_attributes('-fullscreen', True) # uncomment in prod
         
     def combobox_callback(self, choice):
-        choice = choice
         if choice == 'PTZ Cam.':
             self.vid = VideoCaptureDevice('http://192.168.0.19:9100/stream.mjpg') 
 
         elif choice == 'ARDUCam.':
             self.vid = VideoCaptureDevice('http://192.168.0.19:9000/stream.mjpg')
 
-        self.video_update()
-
     def video_update(self):
+
         try:
             ret, frame = self.vid.get_frame()        
             if ret:
-                    self.photo = ImageTk.PhotoImage(image=Image.fromarray(frame))
-                    self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)  
+                self.photo = ImageTk.PhotoImage(image=Image.fromarray(frame))
+                self.canvas.create_image(image_x, image_y, image=self.photo, anchor=tk.NW)  
             self.after(1, self.video_update)
         except Exception as e:
             print(e)
