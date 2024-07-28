@@ -1,4 +1,4 @@
-import cv2, socket, pickle, csv, time # type: ignore
+import cv2, socket, pickle, csv, time, os # type: ignore
 from gpiozero import Robot, Motor # type: ignore
 from multiprocessing import Process
 from subprocess import call
@@ -144,22 +144,43 @@ def server_listener_start():
             if info['PTZ_FOCUS'] == 'AUTO':
                 autoFocus = AutoFocus(focuser, 'http://192.168.0.19:9100/stream.mjpg')
                 autoFocus.debug = False
-                autoFocus.startFocus2()
+                autoFocus.startFocus()
 
-            if info['PTZ_FOCUS'] == '+':
-                focuser.set(Focuser.OPT_FOCUS,focuser.get(Focuser.OPT_FOCUS) + 50)
+            elif info['PTZ_FOCUS'].split('_')[0] == 'ON':
+                focuser.set(Focuser.OPT_FOCUS, int(info['PTZ_FOCUS'].split('_')[1]))
 
-            if info['PTZ_FOCUS'] == '-':
-                focuser.set(Focuser.OPT_FOCUS,focuser.get(Focuser.OPT_FOCUS) - 50)
+            elif info['PTZ_FOCUS'] == '+':
+                focuser.set(Focuser.OPT_FOCUS,focuser.get(Focuser.OPT_FOCUS) + 100)
+
+            elif info['PTZ_FOCUS'] == '-':
+                focuser.set(Focuser.OPT_FOCUS,focuser.get(Focuser.OPT_FOCUS) - 100)
+
+            elif info['PTZ_ZOOM'].split('_')[0] == 'ON':
+                focuser.set(Focuser.OPT_ZOOM, int(info['PTZ_ZOOM'].split('_')[1]))
 
             elif info['PTZ_ZOOM'] == '+':
-                focuser.set(Focuser.OPT_ZOOM,focuser.get(Focuser.OPT_ZOOM) + 100)
+                focuser.set(Focuser.OPT_ZOOM,focuser.get(Focuser.OPT_ZOOM) + 1000)
 
             elif info['PTZ_ZOOM'] == '-':
-                focuser.set(Focuser.OPT_ZOOM,focuser.get(Focuser.OPT_ZOOM) -100)
+                focuser.set(Focuser.OPT_ZOOM,focuser.get(Focuser.OPT_ZOOM) -1000)
 
             elif info['IR_CUT'] == 'True':
                 focuser.set(Focuser.OPT_IRCUT,focuser.get(Focuser.OPT_IRCUT)^0x0001)
+
+            elif info['ARDU_CAMERA'] == 'ONE':
+                os.system('i2cset -y 6 0x24 0x24 0x02')
+
+            elif info['ARDU_CAMERA'] == 'TWO':
+                os.system('i2cset -y 6 0x24 0x24 0x12')
+
+            elif info['ARDU_CAMERA'] == 'THREE':
+                os.system('i2cset -y 6 0x24 0x24 0x22')
+
+            elif info['ARDU_CAMERA'] == 'FOUR':
+                os.system('i2cset -y 6 0x24 0x24 0x32')
+
+            elif info['ARDU_CAMERA'] == 'RESET':
+                os.system('i2cset -y 6 0x24 0x24 0x00')
 
 def video_0_start():
     ardu_cam = Picamera2(0)

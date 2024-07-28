@@ -73,7 +73,7 @@ class CameraButtonGroup(customtkinter.CTkFrame):
         self.button = customtkinter.CTkButton(master=self, command=self.cam_four, text="Channel 4")
         self.button.grid(row=2, column=1, padx=20, pady=20)
 
-        self.button = customtkinter.CTkButton(master=self, command=self.auto_focus, text="Auto Focus")
+        self.button = customtkinter.CTkButton(master=self, command=self.reset, text="Reset")
         self.button.grid(row=1, column=2,padx=20, pady=20)
 
     def cam_one(self):
@@ -96,8 +96,8 @@ class CameraButtonGroup(customtkinter.CTkFrame):
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
-    def auto_focus(self):
-        info = {'ARDU_CAMERA': 'AUTO'}
+    def reset(self):
+        info = {'ARDU_CAMERA': 'RESET'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
@@ -128,6 +128,10 @@ class PTZButtonGroup(customtkinter.CTkFrame):
 
         # focus buttons
 
+        self.slider = customtkinter.CTkSlider(master=self, from_=0, to=100, command=self.focus_slider)
+        self.slider.set(0)
+        self.slider.grid(row=2, column=3, padx=20, pady=20)
+
         self.button = customtkinter.CTkButton(master=self, command=self.more_focus, text="Focus In")
         self.button.grid(row=2, column=0, padx=20, pady=20)
 
@@ -136,16 +140,38 @@ class PTZButtonGroup(customtkinter.CTkFrame):
 
         self.button = customtkinter.CTkButton(master=self, command=self.auto_focus, text="Auto Focus")
         self.button.grid(row=2, column=2, padx=20, pady=20)
+
         # zoom buttons
+
+        self.slider = customtkinter.CTkSlider(master=self, from_=0, to=100, command=self.zoom_slider)
+        self.slider.set(0)
+        self.slider.grid(row=3, column=3, padx=20, pady=20)
 
         self.button = customtkinter.CTkButton(master=self, command=self.more_zoom, text="Zoom In")
         self.button.grid(row=3, column=0, padx=20, pady=20)
 
         self.button = customtkinter.CTkButton(master=self, command=self.less_zoom, text="Zoom Out")
         self.button.grid(row=3, column=1, padx=20, pady=20)
+
         # ir cut
+
         self.button = customtkinter.CTkButton(master=self, command=self.ir_cut, text="IR Cut")
         self.button.grid(row=3, column=2, padx=20, pady=20)
+
+    def zoom_slider(self, value):
+            zoom_amt = value/100 * 20000
+
+            info = {'PTZ_ZOOM': f'ON_{round(zoom_amt)}'}
+            x_as_bytes = pickle.dumps(info)
+            server.sendto((x_as_bytes), (SERVER, CMDPORT))
+    
+    def focus_slider(self, value):
+            
+            focus_amt = value/100 * 20000
+
+            info = {'PTZ_FOCUS': f'ON_{round(focus_amt)}'}
+            x_as_bytes = pickle.dumps(info)
+            server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
     def more_zoom(self):
         info = {'PTZ_ZOOM': '+'}
@@ -156,6 +182,7 @@ class PTZButtonGroup(customtkinter.CTkFrame):
         info = {'PTZ_ZOOM': '-'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
+
     def more_focus(self):
         info = {'PTZ_FOCUS': '+'}
         x_as_bytes = pickle.dumps(info)
