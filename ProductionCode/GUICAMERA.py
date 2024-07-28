@@ -272,10 +272,10 @@ class App(customtkinter.CTk):
         
     def combobox_callback(self, choice):
         if choice == 'PTZ Cam.':
-            self.vid = VideoCaptureDevice('http://192.168.0.19:9000/stream.mjpg')
+            self.vid = VideoCaptureDevice('http://192.168.0.19:9100/stream.mjpg')
           
         elif choice == 'ARDUCam.':
-            self.vid = VideoCaptureDevice('http://192.168.0.19:9001/stream.mjpg')
+            self.vid = VideoCaptureDevice('http://192.168.0.19:9000/stream.mjpg')
         self.video_update() 
 
     def video_update(self):
