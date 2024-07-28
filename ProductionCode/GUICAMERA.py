@@ -1,6 +1,6 @@
 import cv2, tkinter as tk, customtkinter # type: ignore
 from PIL import Image, ImageTk # type: ignore
-import uuid, time
+import uuid
 
 import socket, pickle
 

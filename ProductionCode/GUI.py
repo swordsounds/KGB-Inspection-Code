@@ -211,13 +211,7 @@ class App(customtkinter.CTk):
         self.geometry("{}x{}-{}+0".format(width, height, width + 8)) # added 8 pixels translation due to weird scaling :/
         self.title("Control Panel")
         self.wm_iconbitmap(default=None)
-        # self.minsize(width, height)
-        '''
-        Background code, gotta fix buttons corner radius
-        '''
-        # background_image = customtkinter.CTkImage(Image.open("carbon-fiber-manufacturing-848x500.jpg"), size=(width, height))
-        # bg_lbl = customtkinter.CTkLabel(self, text="", image=background_image)
-        # bg_lbl.place(x=0, y=-1)
+
         # 20x20 grid system
 
         self.grid_rowconfigure(tuple(range(21)), weight=1)

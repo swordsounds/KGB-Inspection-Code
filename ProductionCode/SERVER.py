@@ -1,4 +1,4 @@
-import cv2, socket, pickle, csv, time, os # type: ignore
+import cv2, socket, pickle, csv, os # type: ignore
 from gpiozero import Robot, Motor # type: ignore
 from multiprocessing import Process
 from subprocess import call
@@ -22,22 +22,21 @@ CMDPORT = 8000 # port for crawler commands
 FOCUSER = Focuser(1)
 
 info = {
-    'TETH': None, 
-    'CRAWL': None,
-    'GRIP': None, 
-    'ARM': None,
-    'ARDU_CAMERA': None, 
-    'IR_CUT': None,
-    'PTZ_ZOOM': None, 
-    'PTZ_FOCUS': None, 
-    'PTZ_MOVEMENT': None
+    'TETH': '', 
+    'CRAWL': '',
+    'GRIP': '', 
+    'ARM': '',
+    'ARDU_CAMERA': '', 
+    'IR_CUT': '',
+    'PTZ_ZOOM': '', 
+    'PTZ_FOCUS': '', 
+    'PTZ_MOVEMENT': ''
 }
 
 capture_0 = cv2.VideoCapture(0)
 capture_0.set(cv2.CAP_PROP_FRAME_WIDTH,1280)
 capture_0.set(cv2.CAP_PROP_FRAME_HEIGHT,720)
 capture_0.set(cv2.CAP_PROP_BUFFERSIZE,3)
-# capture_0.set(cv2.CAP_PROP_EXPOSURE, -3.0)
 capture_0.set(cv2.CAP_PROP_FPS,30)
 
 class Streamer(socketserver.ThreadingMixIn, server.HTTPServer):

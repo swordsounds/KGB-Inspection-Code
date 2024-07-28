@@ -70,10 +70,7 @@ def controller():
                     info['CRAWL'] = 'DOWN'
                     x_as_bytes = pickle.dumps(info)
                     server.sendto((x_as_bytes), (SERVER, CMDPORT))
-                # for i in range(0, 2): # Axis 0 is X, Axis 1 is Y                 
-                #     axis = joystick.get_axis(i)
-                    # print(f"Axis {i} value: {axis:>6.3f}")
-                
+               
                 # for buttons in range(0, 4):
                     
                 #         button_mapping = {0: 'dpad_up',
