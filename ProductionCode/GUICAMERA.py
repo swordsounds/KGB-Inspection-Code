@@ -210,7 +210,12 @@ class App(customtkinter.CTk):
         bg_lbl = customtkinter.CTkLabel(self, text="", image=background_image)
         bg_lbl.place(x=0, y=-1)
         '''
-        
+        # logo 
+
+        kgb_logo = customtkinter.CTkImage(Image.open("ProductionCode\KGB_Logo.png"), size=(160, 75))
+        logo = customtkinter.CTkLabel(self, text="", image=kgb_logo)
+        logo.grid(row=5, column=20, sticky="ne")
+
         # 20x20 grid system
 
         self.grid_rowconfigure(tuple(range(21)), weight=1)
@@ -272,11 +277,10 @@ class App(customtkinter.CTk):
         
     def combobox_callback(self, choice):
         if choice == 'PTZ Cam.':
-            self.vid = VideoCaptureDevice('http://192.168.0.19:9100/stream.mjpg')
+            self.set_ptz_cam()
           
         elif choice == 'ARDUCam.':
-            self.vid = VideoCaptureDevice('http://192.168.0.19:9000/stream.mjpg')
-        self.video_update() 
+            self.set_ardu_cam()
 
     def video_update(self):
         try:
@@ -313,6 +317,14 @@ class App(customtkinter.CTk):
     def close_window(self):
         self.destroy()
     
+    def set_ardu_cam(self):
+        self.vid = VideoCaptureDevice('http://192.168.0.19:9000/stream.mjpg')
+        self.video_update()
+
+    def set_ptz_cam(self):
+        self.vid = VideoCaptureDevice('http://192.168.0.19:9100/stream.mjpg')
+        self.video_update() 
+
     def info_reset(self):
         info = {'PTZ_ZOOM': '', 'PTZ_FOCUS': '', 'PTZ_MOVEMENT': ''}
         x_as_bytes = pickle.dumps(info)

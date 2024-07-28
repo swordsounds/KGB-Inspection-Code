@@ -1,4 +1,4 @@
-import cv2, socket, pickle, csv, time
+import cv2, socket, pickle, csv, time # type: ignore
 from gpiozero import Robot, Motor # type: ignore
 from multiprocessing import Process
 from subprocess import call
@@ -7,8 +7,8 @@ from picamera2 import Picamera2 # type: ignore
 from http import server
 import socketserver
 import logging
-from Focuser import Focuser
-from Autofocus import AutoFocus
+from Focuser import Focuser # type: ignore
+from Autofocus import AutoFocus # type: ignore
 
 focuser = Focuser(1)
 # focuser.reset(Focuser.OPT_FOCUS)

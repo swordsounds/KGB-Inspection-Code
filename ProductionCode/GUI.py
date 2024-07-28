@@ -227,9 +227,9 @@ class App(customtkinter.CTk):
 
         # logo 
 
-        # kgb_logo = customtkinter.CTkImage(Image.open("logo.jpg"), size=(125, 75))
-        # logo = customtkinter.CTkLabel(self, text="", image=kgb_logo)
-        # logo.grid(row=0, column=0, sticky="n")
+        kgb_logo = customtkinter.CTkImage(Image.open("ProductionCode\KGB_Logo.png"), size=(160, 75))
+        logo = customtkinter.CTkLabel(self, text="", image=kgb_logo)
+        logo.grid(row=5, column=20, sticky="ne")
 
         # time display 
 
