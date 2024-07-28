@@ -32,14 +32,19 @@ VIDPORT_3 = 9300 # video port
 CMDPORT = 8000 # port for crawler commands
 
 info = {
-   'dpad_up': 0,
-    'dpad_down': 0,
-    'dpad_left': 0,
-    'dpad_right': 0,
-    'tether': 0,
-    'crawl': 0,
-    'gripper': 0,
-    'arm': 0 
+    'dpad_up' : None, 
+    'dpad_down': None, 
+    'dpad_left': None,
+    'dpad_right': None, 
+    'TETH': None, 
+    'CRAWL': None,
+    'GRIP': None, 
+    'ARM': None,
+    'ARDU_CAMERA': None, 
+    'IR_CUT': None,
+    'PTZ_ZOOM': None, 
+    'PTZ_FOCUS': None, 
+    'PTZ_MOVEMENT': None
 }
 # capture_0 = cv2.VideoCapture(0)
 # capture_0.set(cv2.CAP_PROP_FRAME_WIDTH,1280)
@@ -106,7 +111,10 @@ def server_listener_start():
         server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         server.bind((SERVER, CMDPORT))
         
-        fieldnames = ['dpad_up', 'dpad_down', 'dpad_left', 'dpad_right', 'tether', 'crawl','gripper', 'arm']
+        fieldnames = ['dpad_up', 'dpad_down', 'dpad_left','dpad_right', 
+                      'TETH', 'CRAWL','GRIP', 'ARM',
+                      'ARDU_CAMERA', 'IR_CUT',
+                      'PTZ_ZOOM', 'PTZ_FOCUS', 'PTZ_MOVEMENT']
         
         while True:
             x = server.recvfrom(2048)
@@ -161,9 +169,9 @@ def video_1_start():
     vid1 = StreamProps
     vid1.set_Mode(StreamProps, 'picamera2')
     vid1.set_Capture(StreamProps, ptz_cam)
-
     vid_stream_1 = Streamer((SERVER, VIDPORT_1), vid1)
     print('Stream started at','http://{}:{}/stream.mjpg'.format(SERVER, VIDPORT_1))
+    
     vid_stream_1.serve_forever()
 
 if __name__ == '__main__':

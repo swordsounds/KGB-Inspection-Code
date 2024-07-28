@@ -23,7 +23,7 @@ class VideoCaptureDevice:
         if rec_toggle:
                 self.rec.write(frame)
         resized = cv2.resize(frame, video_screen_dim, interpolation=cv2.INTER_AREA)
-        return (ret, cv2.cvtColor(resized, cv2.COLOR_BGR2RGB))
+        return (True, cv2.cvtColor(resized, cv2.COLOR_BGR2RGB))
         #return (ret, frame)
     
     def get_rec(self) -> object:
