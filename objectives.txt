@@ -1,5 +1,1 @@
 - Code refinery and optimizations.
-
-- GUI design changes
-
--
