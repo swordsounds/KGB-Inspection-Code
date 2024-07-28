@@ -1,27 +1,36 @@
-import cv2, socket, pickle, csv, time #type: ignore
-from gpiozero import Robot, Motor #type: ignore
+import cv2, socket, pickle, csv, time
+from gpiozero import Robot, Motor # type: ignore
 from multiprocessing import Process
 from subprocess import call
-from picamera2 import Picamera2 #type: ignore
+from libcamera import controls # type: ignore
+from picamera2 import Picamera2 # type: ignore
 from http import server
 import socketserver
 import logging
+from Focuser import Focuser
+from Autofocus import AutoFocus
+
+focuser = Focuser(1)
+# focuser.reset(Focuser.OPT_FOCUS)
+# while focuser.get(Focuser.OPT_FOCUS) < 18000:
+#     focuser.set(Focuser.OPT_FOCUS,focuser.get(Focuser.OPT_FOCUS) + 50)
+# focuser.set(Focuser.OPT_FOCUS,0)
+# focuser.set(Focuser.OPT_FOCUS,1600)
+# focuser.set(Focuser.OPT_ZOOM,focuser.get(Focuser.OPT_ZOOM) - zoom)
+# focuser.set(Focuser.OPT_ZOOM,20000)
+# focuser.set(Focuser.OPT_IRCUT,focuser.get(Focuser.OPT_IRCUT)^0x0001)
+# focuser.reset(Focuser.OPT_ZOOM)
+
 
 # call("sudo shutdown -h now", shell=True)
 
 SERVER = '192.168.0.19' # Enter your IP address 
-VIDPORT = 9000 # video port
+VIDPORT_0 = 9000 # video port
+VIDPORT_1 = 9100 # video port
+VIDPORT_2 = 9200 # video port
+VIDPORT_3 = 9300 # video port
 CMDPORT = 8000 # port for crawler commands
-HTML="""
-        <html>
-            <head>
-                <title>Video Streaming</title>
-            </head>
-            <body>
-                <center><img src="stream.mjpg" width='640' height='480' autoplay playsinline></center>
-            </body>
-        </html>
-    """
+
 info = {
    'dpad_up': 0,
     'dpad_down': 0,
@@ -32,20 +41,22 @@ info = {
     'gripper': 0,
     'arm': 0 
 }
-# capture = cv2.VideoCapture(0)
-# capture.set(cv2.CAP_PROP_FRAME_WIDTH,1280)
-# capture.set(cv2.CAP_PROP_FRAME_HEIGHT,720)
-
-picam2 = Picamera2()
-video_config = picam2.create_video_configuration({'format': 'RGB888'})
-picam2.configure(video_config)
-picam2.start()
+# capture_0 = cv2.VideoCapture(0)
+# capture_0.set(cv2.CAP_PROP_FRAME_WIDTH,1280)
+# capture_0.set(cv2.CAP_PROP_FRAME_HEIGHT,720)
+# capture_0.set(cv2.CAP_PROP_BUFFERSIZE,3)
+# # capture_0.set(cv2.CAP_PROP_EXPOSURE, -3.0)
+# capture_0.set(cv2.CAP_PROP_FPS,30)
 
 class Streamer(socketserver.ThreadingMixIn, server.HTTPServer):
     allow_reuse_address = True
     daemon_threads = True
     
 class StreamProps(server.BaseHTTPRequestHandler):
+    def set_Capture(self,capture):
+        self.capture = capture
+    def set_Mode(self,mode):
+        self.mode = mode
     def do_GET(self):
         if self.path == '/stream.mjpg':
             self.send_response(200)
@@ -54,31 +65,44 @@ class StreamProps(server.BaseHTTPRequestHandler):
             self.send_header('Pragma', 'no-cache')
             self.send_header('Content-Type', 'multipart/x-mixed-replace; boundary=FRAME')
             self.end_headers()
-            try:
-                while True:
-                    img = picam2.capture_array()
-                    frame = cv2.imencode('.JPEG', img, [cv2.IMWRITE_JPEG_QUALITY, 80])[1].tobytes()
-                    self.wfile.write(b'--FRAME\r\n')
-                    self.send_header('Content-Type', 'image/jpeg')
-                    self.send_header('Content-Length', len(frame))
-                    self.end_headers()
-                    self.wfile.write(frame)
-                    self.wfile.write(b'\r\n')
-            except Exception as e:
-                logging.warning(
-                    'Removed streaming client %s: %s',
-                    self.client_address, str(e))
+            if self.mode == 'cv2':
+                try:
+                    while True:
+                        ret,img = self.capture.read()
+                        frame = cv2.imencode('.JPEG', img,[cv2.IMWRITE_JPEG_QUALITY,80])[1].tobytes()
+                        self.wfile.write(b'--FRAME\r\n')
+                        self.send_header('Content-Type', 'image/jpeg')
+                        self.send_header('Content-Length', len(frame))
+                        self.end_headers()
+                        self.wfile.write(frame)
+                        self.wfile.write(b'\r\n')
+                except Exception as e:
+                    logging.warning(
+                        'Removed streaming client %s: %s',
+                        self.client_address, str(e))
+                    
+            if self.mode == 'picamera2':
+                try:
+                    while True:
+                        img = self.capture.capture_array()
+                        frame = cv2.imencode('.JPEG', img, [cv2.IMWRITE_JPEG_QUALITY, 90])[1].tobytes()
+                        self.wfile.write(b'--FRAME\r\n')
+                        self.send_header('Content-Type', 'image/jpeg')
+                        self.send_header('Content-Length', len(frame))
+                        self.end_headers()
+                        self.wfile.write(frame)
+                        self.wfile.write(b'\r\n')
+                except Exception as e:
+                    logging.warning(
+                        'Removed streaming client %s: %s',
+                        self.client_address, str(e))
+        
         else:
             self.send_error(404)
             self.end_headers()
-   
+
 def server_listener_start():
-        print("Server-Client Connection started...")
-        # right_motor = Motor(forward=19, backward=13)
-        # left_motor = Motor(forward=18, backward=12)
-        
         ROBOT = Robot(right=Motor(19, 13), left=Motor(18, 12))
-        
         server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         server.bind((SERVER, CMDPORT))
         
@@ -106,84 +130,54 @@ def server_listener_start():
             elif info['dpad_right'] == 1:
                 ROBOT.right()
             else:
-                ROBOT.stop()
-            
-            # right_motor.forward(speed=info['dpad_up'])
-            # left_motor.forward(speed=info['dpad_up'])
-            
+                ROBOT.stop()        
+
+def video_0_start():
+    ardu_cam = Picamera2(0)
+    ardu_cam.preview_configuration.main.size=(1920,1080) #full screen : 3280 2464, 1920x1080 for 1, 2464x1736 for 0
+    ardu_cam.preview_configuration.main.format = "RGB888" #8 bits
+    ardu_cam.preview_configuration.raw.format = 'SRGGB8'
+    ardu_cam.set_controls({"AfMode":controls.AfModeEnum.Continuous})
+    ardu_cam.set_controls({"FrameDurationLimits": (1, 1)})
+    ardu_cam.start()
+
+    vid0 = StreamProps
+    vid0.set_Mode(StreamProps, 'picamera2')
+    vid0.set_Capture(StreamProps, ardu_cam)
+    vid_stream_0 = Streamer((SERVER, VIDPORT_0), vid0)
+    print('Stream started at','http://{}:{}/stream.mjpg'.format(SERVER, VIDPORT_0))
+    ardu_cam.set_controls({"AfMode":controls.AfModeEnum.Continuous})
+
+    vid_stream_0.serve_forever()
+
+def video_1_start():
+    ptz_cam = Picamera2(1)
+    ptz_cam.preview_configuration.main.size=(1920,1080) #full screen : 3280 2464, 1920x1080 for 1, 2464x1736 for 0
+    ptz_cam.preview_configuration.main.format = "RGB888" #8 bits
+    ptz_cam.preview_configuration.raw.format = 'SRGGB8'
+    ptz_cam.set_controls({"FrameDurationLimits": (1, 1)})
+    ptz_cam.start()
+
+    vid1 = StreamProps
+    vid1.set_Mode(StreamProps, 'picamera2')
+    vid1.set_Capture(StreamProps, ptz_cam)
+
+    vid_stream_1 = Streamer((SERVER, VIDPORT_1), vid1)
+    print('Stream started at','http://{}:{}/stream.mjpg'.format(SERVER, VIDPORT_1))
+    vid_stream_1.serve_forever()
 
 if __name__ == '__main__':
-    print("Video Client started...")
     try:
-        ser= Process(target=server_listener_start)
+        # autoFocus = AutoFocus(focuser, ptz_cam)
+        # autoFocus.debug = False
+        # autoFocus.startFocus2()
+        ser = Process(target=server_listener_start)
+        vid_0_str = Process(target=video_0_start)
+        vid_1_str = Process(target=video_1_start)
         ser.start()
-        streamer = Streamer((SERVER, VIDPORT), StreamProps)
-        print('Stream started at','http://{}:{}/stream.mjpg'.format(SERVER, VIDPORT))
-        streamer.serve_forever()
+        vid_0_str.start()
+        vid_1_str.start()
+    
     except Exception as e:
         print(e)
     
-# class StreamProps(server.BaseHTTPRequestHandler):
-#     def set_Page(self,PAGE):
-#         self.PAGE = PAGE
-#     def set_Capture(self,capture):
-#         self.capture = capture
-#     def set_Quality(self,quality):
-#         self.quality = quality
-#     def set_Mode(self,mode):
-#         self.mode = mode
-#     def do_GET(self):
-#         if self.path == '/':
-#             self.send_response(301)
-#             self.send_header('Location', '/index.html')
-#             self.end_headers()
-#         elif self.path == '/index.html':
-#             content = self.PAGE.encode('utf-8')
-#             self.send_response(200)
-#             self.send_header('Content-Type', 'text/html')
-#             self.send_header('Content-Length', len(content))
-#             self.end_headers()
-#             self.wfile.write(content)
-#         elif self.path == '/stream.mjpg':
-#             self.send_response(200)
-#             self.send_header('Age', 0)
-#             self.send_header('Cache-Control', 'no-cache, private')
-#             self.send_header('Pragma', 'no-cache')
-#             self.send_header('Content-Type', 'multipart/x-mixed-replace; boundary=FRAME')
-#             self.end_headers()
-#             if self.mode == 'cv2':
-#                 try:
-#                     while True:
-#                         rc,img = self.capture.read()
-                        
-#                         frame = cv2.imencode('.JPEG', img,[cv2.IMWRITE_JPEG_QUALITY,100000000])[1].tobytes()
-#                         self.wfile.write(b'--FRAME\r\n')
-#                         self.send_header('Content-Type', 'image/jpeg')
-#                         self.send_header('Content-Length', len(frame))
-#                         self.end_headers()
-#                         self.wfile.write(frame)
-#                         self.wfile.write(b'\r\n')
-#                 except Exception as e:
-#                     logging.warning(
-#                         'Removed streaming client %s: %s',
-#                         self.client_address, str(e))
-#             if self.mode == 'picamera2':
-#                 try:
-#                     while True:
-                        
-#                        img = self.capture.capture_array()
-                        # frame = cv2.imencode('.JPEG', img, [cv2.IMWRITE_JPEG_QUALITY, 100000000])[1].tobytes()
-                        # self.wfile.write(b'--FRAME\r\n')
-                        # self.send_header('Content-Type', 'image/jpeg')
-                        # self.send_header('Content-Length', len(frame))
-                        # self.end_headers()
-                        # self.wfile.write(frame)
-                        # self.wfile.write(b'\r\n')
-#                 except Exception as e:
-#                     logging.warning(
-#                         'Removed streaming client %s: %s',
-#                         self.client_address, str(e))
-        
-#         else:
-#             self.send_error(404)
-#             self.end_headers()
