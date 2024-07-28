@@ -1,6 +1,6 @@
 import cv2, tkinter as tk, customtkinter # type: ignore
 from PIL import Image, ImageTk # type: ignore
-import uuid
+import uuid, time
 
 import socket, pickle
 
@@ -12,7 +12,8 @@ server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
 
 class VideoCaptureDevice:
     #highest res on pi is 1280, 720 using usb
-    video_link = None
+    
+
     def __init__(self, video_link):
         self.vid = cv2.VideoCapture(video_link) #change ip in prod 192.168.0.19
         self.rec = None
@@ -21,7 +22,7 @@ class VideoCaptureDevice:
         ret, frame = self.vid.read()
         if rec_toggle:
                 self.rec.write(frame)
-        resized = cv2.resize(frame, video_screen_dim, interpolation=cv2.INTER_AREA)
+        resized = cv2.resize(frame, (1130, 720), interpolation=cv2.INTER_AREA)
         return (True, cv2.cvtColor(resized, cv2.COLOR_BGR2RGB))
     
     def get_rec(self) -> object:
@@ -38,6 +39,14 @@ class VideoCaptureDevice:
         if ret:
             unique_id = str(uuid.uuid4()).split('-')[0] #test code TEST THIS
             cv2.imwrite(f"{unique_id}.png", frame)
+
+    def __del__(self) -> None:
+        if self.vid.isOpened():
+            try:
+                self.vid.release()
+                self.rec.release()
+            except Exception as e:
+                print(e)
 
 class CameraButtonGroup(customtkinter.CTkFrame):
     def __init__(self, master):
@@ -262,11 +271,8 @@ class App(customtkinter.CTk):
         self.combobox.grid(row=2, column=0, pady=(200, 0), ipadx=10,sticky="ne")
 
         # video device 
-
-        
         self.canvas = tk.Canvas(self, width=1280, height=625, bg='gray', highlightthickness=0) #adjusted height by -95px to remove whitespace :/
         self.canvas.grid(row=1, column=1, rowspan=4, columnspan=20,padx=20, pady=20,sticky="nsew")
-        self.video_update() 
         
         # info resetter
 
@@ -276,17 +282,20 @@ class App(customtkinter.CTk):
         # self.wm_attributes('-fullscreen', True) # uncomment in prod
         
     def combobox_callback(self, choice):
+        choice = choice
         if choice == 'PTZ Cam.':
-            self.set_ptz_cam()
-          
+            self.vid = VideoCaptureDevice('http://192.168.0.19:9100/stream.mjpg') 
+
         elif choice == 'ARDUCam.':
-            self.set_ardu_cam()
+            self.vid = VideoCaptureDevice('http://192.168.0.19:9000/stream.mjpg')
+
+        self.video_update()
 
     def video_update(self):
         try:
             ret, frame = self.vid.get_frame()        
             if ret:
-                    self.photo = ImageTk.PhotoImage(image= Image.fromarray(frame))
+                    self.photo = ImageTk.PhotoImage(image=Image.fromarray(frame))
                     self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)  
             self.after(1, self.video_update)
         except Exception as e:
@@ -316,17 +325,9 @@ class App(customtkinter.CTk):
     
     def close_window(self):
         self.destroy()
-    
-    def set_ardu_cam(self):
-        self.vid = VideoCaptureDevice('http://192.168.0.19:9000/stream.mjpg')
-        self.video_update()
-
-    def set_ptz_cam(self):
-        self.vid = VideoCaptureDevice('http://192.168.0.19:9100/stream.mjpg')
-        self.video_update() 
 
     def info_reset(self):
-        info = {'PTZ_ZOOM': '', 'PTZ_FOCUS': '', 'PTZ_MOVEMENT': ''}
+        info = {'PTZ_ZOOM': '', 'PTZ_FOCUS': '', 'PTZ_MOVEMENT': '', 'IR_CUT': ''}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
         self.after(50, self.info_reset)

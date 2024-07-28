@@ -46,12 +46,13 @@ info = {
     'PTZ_FOCUS': None, 
     'PTZ_MOVEMENT': None
 }
-# capture_0 = cv2.VideoCapture(0)
-# capture_0.set(cv2.CAP_PROP_FRAME_WIDTH,1280)
-# capture_0.set(cv2.CAP_PROP_FRAME_HEIGHT,720)
-# capture_0.set(cv2.CAP_PROP_BUFFERSIZE,3)
-# # capture_0.set(cv2.CAP_PROP_EXPOSURE, -3.0)
-# capture_0.set(cv2.CAP_PROP_FPS,30)
+
+capture_0 = cv2.VideoCapture(0)
+capture_0.set(cv2.CAP_PROP_FRAME_WIDTH,1280)
+capture_0.set(cv2.CAP_PROP_FRAME_HEIGHT,720)
+capture_0.set(cv2.CAP_PROP_BUFFERSIZE,3)
+# capture_0.set(cv2.CAP_PROP_EXPOSURE, -3.0)
+capture_0.set(cv2.CAP_PROP_FPS,30)
 
 class Streamer(socketserver.ThreadingMixIn, server.HTTPServer):
     allow_reuse_address = True
@@ -74,7 +75,7 @@ class StreamProps(server.BaseHTTPRequestHandler):
                 try:
                     while True:
                         ret,img = self.capture.read()
-                        frame = cv2.imencode('.JPEG', img,[cv2.IMWRITE_JPEG_QUALITY,80])[1].tobytes()
+                        frame = cv2.imencode('.JPEG', img,[cv2.IMWRITE_JPEG_QUALITY,90])[1].tobytes()
                         self.wfile.write(b'--FRAME\r\n')
                         self.send_header('Content-Type', 'image/jpeg')
                         self.send_header('Content-Length', len(frame))
@@ -129,16 +130,36 @@ def server_listener_start():
                 csv_writer.writeheader()
                 csv_writer.writerow(info)
             
-            if info['dpad_up'] == 1:
-                ROBOT.forward()
-            elif info['dpad_down'] == 1:
-                ROBOT.backward()
-            elif info['dpad_left'] == 1:
-                ROBOT.left()
-            elif info['dpad_right'] == 1:
-                ROBOT.right()
-            else:
-                ROBOT.stop()        
+            # if info['dpad_up'] == 1:
+            #     ROBOT.forward()
+            # elif info['dpad_down'] == 1:
+            #     ROBOT.backward()
+            # elif info['dpad_left'] == 1:
+            #     ROBOT.left()
+            # elif info['dpad_right'] == 1:
+            #     ROBOT.right()
+            # else:
+            #     ROBOT.stop()   
+
+            if info['PTZ_FOCUS'] == 'AUTO':
+                autoFocus = AutoFocus(focuser, 'http://192.168.0.19:9100/stream.mjpg')
+                autoFocus.debug = False
+                autoFocus.startFocus2()
+
+            if info['PTZ_FOCUS'] == '+':
+                focuser.set(Focuser.OPT_FOCUS,focuser.get(Focuser.OPT_FOCUS) + 50)
+
+            if info['PTZ_FOCUS'] == '-':
+                focuser.set(Focuser.OPT_FOCUS,focuser.get(Focuser.OPT_FOCUS) - 50)
+
+            elif info['PTZ_ZOOM'] == '+':
+                focuser.set(Focuser.OPT_ZOOM,focuser.get(Focuser.OPT_ZOOM) + 100)
+
+            elif info['PTZ_ZOOM'] == '-':
+                focuser.set(Focuser.OPT_ZOOM,focuser.get(Focuser.OPT_ZOOM) -100)
+
+            elif info['IR_CUT'] == 'True':
+                focuser.set(Focuser.OPT_IRCUT,focuser.get(Focuser.OPT_IRCUT)^0x0001)
 
 def video_0_start():
     ardu_cam = Picamera2(0)
@@ -171,8 +192,19 @@ def video_1_start():
     vid1.set_Capture(StreamProps, ptz_cam)
     vid_stream_1 = Streamer((SERVER, VIDPORT_1), vid1)
     print('Stream started at','http://{}:{}/stream.mjpg'.format(SERVER, VIDPORT_1))
-    
+
     vid_stream_1.serve_forever()
+
+def video_2_start():
+    
+
+    vid2 = StreamProps
+    vid2.set_Mode(StreamProps, 'cv2')
+    vid2.set_Capture(StreamProps, capture_0)
+    vid_stream_2 = Streamer((SERVER, VIDPORT_2), vid2)
+    print('Stream started at','http://{}:{}/stream.mjpg'.format(SERVER, VIDPORT_2))
+
+    vid_stream_2.serve_forever()
 
 if __name__ == '__main__':
     try:
@@ -182,9 +214,11 @@ if __name__ == '__main__':
         ser = Process(target=server_listener_start)
         vid_0_str = Process(target=video_0_start)
         vid_1_str = Process(target=video_1_start)
+        vid_2_str = Process(target=video_2_start)
         ser.start()
         vid_0_str.start()
         vid_1_str.start()
+        vid_2_str.start()
     
     except Exception as e:
         print(e)
