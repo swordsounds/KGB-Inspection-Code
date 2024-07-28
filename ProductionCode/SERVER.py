@@ -22,10 +22,6 @@ CMDPORT = 8000 # port for crawler commands
 FOCUSER = Focuser(1)
 
 info = {
-    'dpad_up' : None, 
-    'dpad_down': None, 
-    'dpad_left': None,
-    'dpad_right': None, 
     'TETH': None, 
     'CRAWL': None,
     'GRIP': None, 
@@ -109,121 +105,113 @@ def server_listener_start():
         server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         server.bind((SERVER, CMDPORT))
         
-        fieldnames = ['dpad_up', 'dpad_down', 'dpad_left','dpad_right', 
-                      'TETH', 'CRAWL','GRIP', 'ARM',
+        fieldnames = ['TETH', 'CRAWL','GRIP', 'ARM',
                       'ARDU_CAMERA', 'IR_CUT',
                       'PTZ_ZOOM', 'PTZ_FOCUS', 'PTZ_MOVEMENT']
-        
-        while True:
-            x = server.recvfrom(2048)
-            data = x[0]
-            data = pickle.loads(data)
-         
-            for key, value in data.items():
-                info[key] = value           
-        
-            with open('data.csv', 'w') as csv_file: #test code REMOVE
-                csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)#test code REMOVE
-                csv_writer.writeheader()#test code REMOVE
-                csv_writer.writerow(info)#test code REMOVE
+        try:
+            while True:
+                x = server.recvfrom(2048)
+                data = x[0]
+                data = pickle.loads(data)
             
-            if info['dpad_up'] == 1:
-                ROBOT.forward()
-            elif info['dpad_down'] == 1:
-                ROBOT.backward()
-            elif info['dpad_left'] == 1:
-                ROBOT.left()
-            elif info['dpad_right'] == 1:
-                ROBOT.right() 
+                for key, value in data.items():
+                    info[key] = value           
             
-
-
-            elif info['CRAWL'] == 'FORW':
-                ROBOT.forward()
-            elif info['CRAWL'] == 'RIGHT':
-                ROBOT.right() 
-            elif info['CRAWL'] == 'BACK':
-                ROBOT.backward()
-            elif info['CRAWL'] == 'LEFT':
-                ROBOT.left()
+                with open('data.csv', 'w') as csv_file: #test code REMOVE
+                    csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)#test code REMOVE
+                    csv_writer.writeheader()#test code REMOVE
+                    csv_writer.writerow(info)#test code REMOVE        
 
 
 
-            elif info['ARM'] == 'EXT':
-                pass
-            elif info['ARM'] == 'RETR':
-                pass
+                if info['CRAWL'] == 'FORW':
+                    ROBOT.forward()
+                elif info['CRAWL'] == 'RIGHT':
+                    ROBOT.right() 
+                elif info['CRAWL'] == 'BACK':
+                    ROBOT.backward()
+                elif info['CRAWL'] == 'LEFT':
+                    ROBOT.left()
 
 
 
-            elif info['GRIP'] == 'OPEN':
-                pass
-            elif info['GRIP'] == 'CLOSE':
-                pass
-            elif info['GRIP'] == 'RIGHT':
-                pass
-            elif info['GRIP'] == 'LEFT':
-                pass
+                elif info['ARM'] == 'EXT':
+                    pass
+                elif info['ARM'] == 'RETR':
+                    pass
 
 
 
-            elif info['TETH'] == 'EXT':
-                pass
-            elif info['TETH'] == 'RETR':
-                pass
-            elif info['TETH'] == 'STOP':
-                pass
+                elif info['GRIP'] == 'OPEN':
+                    pass
+                elif info['GRIP'] == 'CLOSE':
+                    pass
+                elif info['GRIP'] == 'RIGHT':
+                    pass
+                elif info['GRIP'] == 'LEFT':
+                    pass
 
 
 
-            elif info['PTZ_FOCUS'] == 'AUTO':
-                autoFocus = AutoFocus(FOCUSER, 'http://192.168.0.19:9100/stream.mjpg')
-                autoFocus.debug = False
-                autoFocus.startFocus()
-            elif info['PTZ_FOCUS'].split('_')[0] == 'ON':
-                FOCUSER.set(Focuser.OPT_FOCUS, int(info['PTZ_FOCUS'].split('_')[1]))
-            elif info['PTZ_FOCUS'] == '+':
-                FOCUSER.set(Focuser.OPT_FOCUS,FOCUSER.get(Focuser.OPT_FOCUS) + 100)
-            elif info['PTZ_FOCUS'] == '-':
-                FOCUSER.set(Focuser.OPT_FOCUS,FOCUSER.get(Focuser.OPT_FOCUS) - 100)
+                elif info['TETH'] == 'EXT':
+                    pass
+                elif info['TETH'] == 'RETR':
+                    pass
+                elif info['TETH'] == 'STOP':
+                    pass
 
 
 
-            elif info['PTZ_ZOOM'].split('_')[0] == 'ON':
-                FOCUSER.set(Focuser.OPT_ZOOM, int(info['PTZ_ZOOM'].split('_')[1]))
-            elif info['PTZ_ZOOM'] == '+':
-                FOCUSER.set(Focuser.OPT_ZOOM,FOCUSER.get(Focuser.OPT_ZOOM) + 1000)
-            elif info['PTZ_ZOOM'] == '-':
-                FOCUSER.set(Focuser.OPT_ZOOM,FOCUSER.get(Focuser.OPT_ZOOM) -1000)
+                elif info['PTZ_FOCUS'] == 'AUTO':
+                    autoFocus = AutoFocus(FOCUSER, 'http://192.168.0.19:9100/stream.mjpg')
+                    autoFocus.debug = False
+                    autoFocus.startFocus()
+                elif info['PTZ_FOCUS'].split('_')[0] == 'ON':
+                    FOCUSER.set(Focuser.OPT_FOCUS, int(info['PTZ_FOCUS'].split('_')[1]))
+                elif info['PTZ_FOCUS'] == '+':
+                    FOCUSER.set(Focuser.OPT_FOCUS,FOCUSER.get(Focuser.OPT_FOCUS) + 100)
+                elif info['PTZ_FOCUS'] == '-':
+                    FOCUSER.set(Focuser.OPT_FOCUS,FOCUSER.get(Focuser.OPT_FOCUS) - 100)
 
 
 
-            elif info['PTZ_MOVEMENT'] == 'UP':
-                pass
-            elif info['PTZ_MOVEMENT'] == 'RIGHT':
-                pass
-            elif info['PTZ_MOVEMENT'] == 'DOWN':
-                pass
-            elif info['PTZ_MOVEMENT'] == 'LEFT':
-                pass
+                elif info['PTZ_ZOOM'].split('_')[0] == 'ON':
+                    FOCUSER.set(Focuser.OPT_ZOOM, int(info['PTZ_ZOOM'].split('_')[1]))
+                elif info['PTZ_ZOOM'] == '+':
+                    FOCUSER.set(Focuser.OPT_ZOOM,FOCUSER.get(Focuser.OPT_ZOOM) + 1000)
+                elif info['PTZ_ZOOM'] == '-':
+                    FOCUSER.set(Focuser.OPT_ZOOM,FOCUSER.get(Focuser.OPT_ZOOM) -1000)
 
 
 
-            elif info['IR_CUT'] == 'True':
-                FOCUSER.set(Focuser.OPT_IRCUT,FOCUSER.get(Focuser.OPT_IRCUT)^0x0001)
+                elif info['PTZ_MOVEMENT'] == 'UP':
+                    pass
+                elif info['PTZ_MOVEMENT'] == 'RIGHT':
+                    pass
+                elif info['PTZ_MOVEMENT'] == 'DOWN':
+                    pass
+                elif info['PTZ_MOVEMENT'] == 'LEFT':
+                    pass
 
 
 
-            elif info['ARDU_CAMERA'] == 'ONE':
-                os.system('i2cset -y 6 0x24 0x24 0x02')
-            elif info['ARDU_CAMERA'] == 'TWO':
-                os.system('i2cset -y 6 0x24 0x24 0x12')
-            elif info['ARDU_CAMERA'] == 'THREE':
-                os.system('i2cset -y 6 0x24 0x24 0x22')
-            elif info['ARDU_CAMERA'] == 'FOUR':
-                os.system('i2cset -y 6 0x24 0x24 0x32')
-            elif info['ARDU_CAMERA'] == 'RESET':
-                os.system('i2cset -y 6 0x24 0x24 0x00')
+                elif info['IR_CUT'] == 'True':
+                    FOCUSER.set(Focuser.OPT_IRCUT,FOCUSER.get(Focuser.OPT_IRCUT)^0x0001)
+
+
+
+                elif info['ARDU_CAMERA'] == 'ONE':
+                    os.system('i2cset -y 6 0x24 0x24 0x02')
+                elif info['ARDU_CAMERA'] == 'TWO':
+                    os.system('i2cset -y 6 0x24 0x24 0x12')
+                elif info['ARDU_CAMERA'] == 'THREE':
+                    os.system('i2cset -y 6 0x24 0x24 0x22')
+                elif info['ARDU_CAMERA'] == 'FOUR':
+                    os.system('i2cset -y 6 0x24 0x24 0x32')
+                elif info['ARDU_CAMERA'] == 'RESET':
+                    os.system('i2cset -y 6 0x24 0x24 0x00')
+        except Exception as e:
+            print(e)
 
 def video_0_start():
     ardu_cam = Picamera2(0)

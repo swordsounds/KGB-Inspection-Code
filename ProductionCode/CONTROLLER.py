@@ -9,10 +9,7 @@ SERVER = '192.168.0.19'
 CMDPORT = 8000 
 
 info = {
-            "dpad_up": 0,
-            "dpad_down": 0,
-            "dpad_left": 0,
-            "dpad_right": 0,
+        "CRAWL": ''
         }
 
 
@@ -49,20 +46,43 @@ def controller():
 
              
             for joystick in joysticks.values():
-            #     axes = joystick.get_numaxes()
-            #     for i in range(0, 2):                 
-            #         axis = joystick.get_axis(i)
-            #         print(f"Axis {i} value: {axis:>6.3f}")
+                # axes = joystick.get_numaxes()
+
+                x_axis_value = round(joystick.get_axis(0), 1)
+                y_axis_value = round(joystick.get_axis(1), 1)
+
+                if x_axis_value == 1:
+                    info['CRAWL'] = 'RIGHT'
+                    x_as_bytes = pickle.dumps(info)
+                    server.sendto((x_as_bytes), (SERVER, CMDPORT))
+
+                elif x_axis_value == -1:
+                    info['CRAWL'] = 'LEFT'
+                    x_as_bytes = pickle.dumps(info)
+                    server.sendto((x_as_bytes), (SERVER, CMDPORT))
+
+                elif y_axis_value == -1:
+                    info['CRAWL'] = 'UP'
+                    x_as_bytes = pickle.dumps(info)
+                    server.sendto((x_as_bytes), (SERVER, CMDPORT))
                 
-                for buttons in range(0, 4):
+                elif y_axis_value == 1:
+                    info['CRAWL'] = 'DOWN'
+                    x_as_bytes = pickle.dumps(info)
+                    server.sendto((x_as_bytes), (SERVER, CMDPORT))
+                # for i in range(0, 2): # Axis 0 is X, Axis 1 is Y                 
+                #     axis = joystick.get_axis(i)
+                    # print(f"Axis {i} value: {axis:>6.3f}")
+                
+                # for buttons in range(0, 4):
                     
-                        button_mapping = {0: 'dpad_up',
-                                        1: 'dpad_down',
-                                        2: 'dpad_left',
-                                        3: 'dpad_right'
-                                        }
-                        value = joystick.get_button(buttons)
-                        info[button_mapping[buttons]] = value
+                #         button_mapping = {0: 'dpad_up',
+                #                         1: 'dpad_down',
+                #                         2: 'dpad_left',
+                #                         3: 'dpad_right'
+                #                         }
+                #         value = joystick.get_button(buttons)
+                #         info[button_mapping[buttons]] = value
                        
                 # hats = joystick.get_numhats()
                 # for i in range(hats):
