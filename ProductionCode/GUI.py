@@ -15,7 +15,6 @@ class VideoCaptureDevice:
     #highest res on pi is 1280, 720 using usb
     def __init__(self):
         self.vid = cv2.VideoCapture('http://192.168.0.19:9200/stream.mjpg') #change ip in prod 192.168.0.19
-        # self.vid = cv2.VideoCapture(None) #test code REMOVE
         self.rec = None
 
     def get_frame(self) -> tuple[bool, list[int]]:
@@ -23,8 +22,7 @@ class VideoCaptureDevice:
         if rec_toggle:
                 self.rec.write(frame)
         resized = cv2.resize(frame, video_screen_dim, interpolation=cv2.INTER_AREA)
-        return (True, cv2.cvtColor(resized, cv2.COLOR_BGR2RGB))
-        #return (ret, frame)
+        return (ret, cv2.cvtColor(resized, cv2.COLOR_BGR2RGB))
     
     def get_rec(self) -> object:
         unique_id = str(uuid.uuid4()).split('-')[0] #test code TEST THIS
@@ -293,8 +291,6 @@ class App(customtkinter.CTk):
 
         self.info_reset()
 
-        # fullscreen after elements loaded
-        # self.wm_attributes('-fullscreen', True) # uncomment in prod
     def video_update(self):
         try:
             ret, frame = self.vid.get_frame()        
@@ -326,10 +322,9 @@ class App(customtkinter.CTk):
         self.after(1000, self.time_start)
 
     def max_window(self):
-        # self.wm_attributes("-fullscreen", "True")
         self.geometry("{}x{}-{}+0".format(1920, 1080, 1928))
+
     def mini_window(self):
-        # self.wm_attributes("-fullscreen", "False")
         self.geometry("{}x{}-{}+0".format(300, 300, 1925))
     
     def close_window(self):

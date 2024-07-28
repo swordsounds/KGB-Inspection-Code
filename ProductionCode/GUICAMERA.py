@@ -237,17 +237,11 @@ class App(customtkinter.CTk):
 
         width = self.winfo_screenwidth()
         height = self.winfo_screenheight()
-        self.geometry("{}x{}-{}+0".format(width, height, width + 8)) # added 8 pixels translation due to weird scaling :/
+        # self.geometry("{}x{}-{}+0".format(width, height, width + 8)) # added 8 pixels translation due to weird scaling :/
+        self.geometry("{}x{}+0+0".format(width, height)) # added 8 pixels translation due to weird scaling :/
         self.title("Video Panel")
         self.wm_iconbitmap(default=None)
-        # self.minsize(width, height)
-        '''
-        Background code, gotta fix buttons corner radius
-       
-        background_image = customtkinter.CTkImage(Image.open("carbon-fiber-manufacturing-848x500.jpg"), size=(width, height))
-        bg_lbl = customtkinter.CTkLabel(self, text="", image=background_image)
-        bg_lbl.place(x=0, y=-1)
-        '''
+
         # logo 
 
         kgb_logo = customtkinter.CTkImage(Image.open("ProductionCode\KGB_Logo.png"), size=(160, 75))
@@ -308,9 +302,6 @@ class App(customtkinter.CTk):
 
         self.info_reset()
 
-        # fullscreen after elements loaded
-        # self.wm_attributes('-fullscreen', True) # uncomment in prod
-        
     def combobox_callback(self, choice):
         if choice == 'PTZ Cam.':
             self.vid = VideoCaptureDevice('http://192.168.0.19:9100/stream.mjpg') 
@@ -344,11 +335,9 @@ class App(customtkinter.CTk):
         self.vid.get_pic()
 
     def max_window(self):
-        # self.wm_attributes("-fullscreen", "True")
         self.geometry("{}x{}-{}+0".format(1920, 1080, 1928))
         
     def mini_window(self):
-        # self.wm_attributes("-fullscreen", "False")
         self.geometry("{}x{}-{}+0".format(300, 300, 1925))
     
     def close_window(self):
