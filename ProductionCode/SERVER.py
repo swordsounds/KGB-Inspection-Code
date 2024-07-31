@@ -34,9 +34,10 @@ info = {
 }
 
 capture_0 = cv2.VideoCapture(0)
-capture_0.set(cv2.CAP_PROP_FRAME_WIDTH,1280)
-capture_0.set(cv2.CAP_PROP_FRAME_HEIGHT,720)
-capture_0.set(cv2.CAP_PROP_BUFFERSIZE,3)
+capture_0.set(cv2.CAP_PROP_FRAME_WIDTH,320)
+capture_0.set(cv2.CAP_PROP_FRAME_HEIGHT,240)
+capture_0.set(cv2.CAP_PROP_EXPOSURE, -18) 
+capture_0.set(cv2.CAP_PROP_BUFFERSIZE,4)
 capture_0.set(cv2.CAP_PROP_FPS,30)
 
 class Streamer(socketserver.ThreadingMixIn, server.HTTPServer):
@@ -99,6 +100,7 @@ def server_listener_start():
         Breaks whenever you dont. I have no idea why I'll just accept it.
 
         '''
+        
         ROBOT = Robot(right=Motor(19, 13), left=Motor(18, 12))
 
         server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -124,100 +126,101 @@ def server_listener_start():
 
 
                 if info['CRAWL'] == 'FORW':
-                    ROBOT.forward()
-                elif info['CRAWL'] == 'RIGHT':
-                    ROBOT.right() 
-                elif info['CRAWL'] == 'BACK':
-                    ROBOT.backward()
-                elif info['CRAWL'] == 'LEFT':
-                    ROBOT.left()
+                    ROBOT.forward(speed=0.50)
+                if info['CRAWL'] == 'RIGHT':
+                    ROBOT.right(speed=0.50) 
+                if info['CRAWL'] == 'BACK':
+                    ROBOT.backward(speed=0.50)
+                if info['CRAWL'] == 'LEFT':
+                    ROBOT.left(speed=0.50)
+                if info['CRAWL'] == '':
+                    ROBOT.stop()
 
-
-
-                elif info['ARM'] == 'EXT':
+                if info['ARM'] == 'EXT':
                     pass
-                elif info['ARM'] == 'RETR':
-                    pass
-
-
-
-                elif info['GRIP'] == 'OPEN':
-                    pass
-                elif info['GRIP'] == 'CLOSE':
-                    pass
-                elif info['GRIP'] == 'RIGHT':
-                    pass
-                elif info['GRIP'] == 'LEFT':
+                if info['ARM'] == 'RETR':
                     pass
 
 
 
-                elif info['TETH'] == 'EXT':
+                if info['GRIP'] == 'OPEN':
                     pass
-                elif info['TETH'] == 'RETR':
+                if info['GRIP'] == 'CLOSE':
                     pass
-                elif info['TETH'] == 'STOP':
+                if info['GRIP'] == 'RIGHT':
+                    pass
+                if info['GRIP'] == 'LEFT':
                     pass
 
 
 
-                elif info['PTZ_FOCUS'] == 'AUTO':
+                if info['TETH'] == 'EXT':
+                    pass
+                if info['TETH'] == 'RETR':
+                    pass
+                if info['TETH'] == 'STOP':
+                    pass
+
+
+
+                if info['PTZ_FOCUS'] == 'AUTO':
                     autoFocus = AutoFocus(FOCUSER, 'http://192.168.0.19:9100/stream.mjpg')
                     autoFocus.debug = False
                     autoFocus.startFocus()
-                elif info['PTZ_FOCUS'].split('_')[0] == 'ON':
+                if info['PTZ_FOCUS'].split('_')[0] == 'ON':
                     FOCUSER.set(Focuser.OPT_FOCUS, int(info['PTZ_FOCUS'].split('_')[1]))
-                elif info['PTZ_FOCUS'] == '+':
+                if info['PTZ_FOCUS'] == '+':
                     FOCUSER.set(Focuser.OPT_FOCUS,FOCUSER.get(Focuser.OPT_FOCUS) + 100)
-                elif info['PTZ_FOCUS'] == '-':
+                if info['PTZ_FOCUS'] == '-':
                     FOCUSER.set(Focuser.OPT_FOCUS,FOCUSER.get(Focuser.OPT_FOCUS) - 100)
 
 
 
-                elif info['PTZ_ZOOM'].split('_')[0] == 'ON':
+                if info['PTZ_ZOOM'].split('_')[0] == 'ON':
                     FOCUSER.set(Focuser.OPT_ZOOM, int(info['PTZ_ZOOM'].split('_')[1]))
-                elif info['PTZ_ZOOM'] == '+':
+                if info['PTZ_ZOOM'] == '+':
                     FOCUSER.set(Focuser.OPT_ZOOM,FOCUSER.get(Focuser.OPT_ZOOM) + 1000)
-                elif info['PTZ_ZOOM'] == '-':
+                if info['PTZ_ZOOM'] == '-':
                     FOCUSER.set(Focuser.OPT_ZOOM,FOCUSER.get(Focuser.OPT_ZOOM) -1000)
 
 
 
-                elif info['PTZ_MOVEMENT'] == 'UP':
+                if info['PTZ_MOVEMENT'] == 'UP':
                     pass
-                elif info['PTZ_MOVEMENT'] == 'RIGHT':
+                if info['PTZ_MOVEMENT'] == 'RIGHT':
                     pass
-                elif info['PTZ_MOVEMENT'] == 'DOWN':
+                if info['PTZ_MOVEMENT'] == 'DOWN':
                     pass
-                elif info['PTZ_MOVEMENT'] == 'LEFT':
+                if info['PTZ_MOVEMENT'] == 'LEFT':
                     pass
 
 
 
-                elif info['IR_CUT'] == 'True':
+                if info['IR_CUT'] == 'True':
                     FOCUSER.set(Focuser.OPT_IRCUT,FOCUSER.get(Focuser.OPT_IRCUT)^0x0001)
 
 
 
-                elif info['ARDU_CAMERA'] == 'ONE':
+                if info['ARDU_CAMERA'] == 'ONE':
                     os.system('i2cset -y 6 0x24 0x24 0x02')
-                elif info['ARDU_CAMERA'] == 'TWO':
+                if info['ARDU_CAMERA'] == 'TWO':
                     os.system('i2cset -y 6 0x24 0x24 0x12')
-                elif info['ARDU_CAMERA'] == 'THREE':
+                if info['ARDU_CAMERA'] == 'THREE':
                     os.system('i2cset -y 6 0x24 0x24 0x22')
-                elif info['ARDU_CAMERA'] == 'FOUR':
+                if info['ARDU_CAMERA'] == 'FOUR':
                     os.system('i2cset -y 6 0x24 0x24 0x32')
-                elif info['ARDU_CAMERA'] == 'RESET':
+                if info['ARDU_CAMERA'] == 'RESET':
                     os.system('i2cset -y 6 0x24 0x24 0x00')
+                            
         except Exception as e:
             print(e)
 
 def video_0_start():
     ardu_cam = Picamera2(0)
-    ardu_cam.preview_configuration.main.size=(1920,1080) #full screen : 3280 2464, 1920x1080 for 1, 2464x1736 for 0
+    ardu_cam.preview_configuration.main.size=(1280,720) #full screen : 3280 2464, 1920x1080 for 1, 2464x1736 for 0
     ardu_cam.preview_configuration.main.format = "RGB888" #8 bits
     ardu_cam.preview_configuration.raw.format = 'SRGGB8'
-    ardu_cam.set_controls({"FrameDurationLimits": (1, 1)})
+    ardu_cam.set_controls({"FrameDurationLimits": (40000, 40000)})
     ardu_cam.start()
 
     vid0 = StreamProps
@@ -231,10 +234,10 @@ def video_0_start():
 
 def video_1_start():
     ptz_cam = Picamera2(1)
-    ptz_cam.preview_configuration.main.size=(1920,1080) #full screen : 3280 2464, 1920x1080 for 1, 2464x1736 for 0
+    ptz_cam.preview_configuration.main.size=(1280,720) #full screen : 3280 2464, 1920x1080 for 1, 2464x1736 for 0
     ptz_cam.preview_configuration.main.format = "RGB888" #8 bits
     ptz_cam.preview_configuration.raw.format = 'SRGGB8'
-    ptz_cam.set_controls({"FrameDurationLimits": (1, 1)})
+    ptz_cam.set_controls({"FrameDurationLimits": (10000, 10000)})
     ptz_cam.start()
 
     vid1 = StreamProps
@@ -264,5 +267,7 @@ if __name__ == '__main__':
         vid_0_str.start()
         vid_1_str.start()
         vid_2_str.start()
+        
+
     except Exception as e:
         print(e)

@@ -208,9 +208,10 @@ class App(customtkinter.CTk):
 
         width = self.winfo_screenwidth()
         height = self.winfo_screenheight()
-        self.geometry("{}x{}-{}+0".format(width, height, width + 8)) # added 8 pixels translation due to weird scaling :/
+        self.geometry("{}x{}+0+0".format(width, height)) # added 8 pixels translation due to weird scaling :/
         self.title("Control Panel")
         self.wm_iconbitmap(default=None)
+        # self.maxsize(width=1920, height=height)
 
         # 20x20 grid system
 

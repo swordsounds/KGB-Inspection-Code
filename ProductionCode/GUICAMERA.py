@@ -313,7 +313,7 @@ class App(customtkinter.CTk):
             ret, frame = self.vid.get_frame()        
             if ret:
                 self.photo = ImageTk.PhotoImage(image=Image.fromarray(frame))
-                self.canvas.create_image(image_x, image_y, image=self.photo, anchor=tk.NW)  
+                self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)  
             self.after(1, self.video_update)
         except Exception as e:
             print(e)
