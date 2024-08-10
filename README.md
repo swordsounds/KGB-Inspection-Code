@@ -8,3 +8,7 @@ Please follow coding patterns for better documentation:
 - Use indentations to group respective statements
 
 Further Documentation in a google doc/juptyer notebook will be provided when ready.
+
+- Put Distance in GUI 
+
+str(round(self.count / 60, 2)) + " ft"
