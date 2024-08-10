@@ -81,25 +81,25 @@ def controller():
 
 
                 if x_axis_value_right == 1:
-                    info['CRAWL'] = ''
+                    info['CRAWL'] = 'STOP'
                     info['PTZ_MOVEMENT'] = 'RIGHT'
                     x_as_bytes = pickle.dumps(info)
                     server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
                 elif x_axis_value_right == -1:
-                    info['CRAWL'] = ''
+                    info['CRAWL'] = 'STOP'
                     info['PTZ_MOVEMENT'] = 'LEFT'
                     x_as_bytes = pickle.dumps(info)
                     server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
                 elif y_axis_value_right == -1:
-                    info['CRAWL'] = ''
+                    info['CRAWL'] = 'STOP'
                     info['PTZ_MOVEMENT'] = 'UP'
                     x_as_bytes = pickle.dumps(info)
                     server.sendto((x_as_bytes), (SERVER, CMDPORT))
                 
                 elif y_axis_value_right == 1:
-                    # info['CRAWL'] = ''
+                    info['CRAWL'] = 'STOP'
                     info['PTZ_MOVEMENT'] = 'DOWN'
                     x_as_bytes = pickle.dumps(info)
                     server.sendto((x_as_bytes), (SERVER, CMDPORT))

@@ -12,12 +12,17 @@ from Autofocus import AutoFocus # type: ignore
 
 # call("sudo shutdown -h now", shell=True)
 
-SERVER = '192.168.0.19' # Enter your IP address 
+SERVER = '192.168.0.19' # Enter  CRAWLER address 
+SERVER_CONTROL_BOX = '192.168.0.23' # Enter CONTROL BOX address
+# SERVER_CONTROL_BOX = '192.168.0.26' # Enter CONTROL BOX address
+
 VIDPORT_0 = 9000 # video port
 VIDPORT_1 = 9100 # video port
 VIDPORT_2 = 9200 # video port
 VIDPORT_3 = 9300 # video port
 CMDPORT = 8000 # port for crawler commands
+
+CONTROL_BOX_PORT = 10000 # port for control box positioning
 
 FOCUSER = Focuser(1)
 
@@ -115,6 +120,7 @@ def server_listener_start():
         ROBOT = Robot(right=Motor(19, 13), left=Motor(18, 12))
 
         server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
         server.bind((SERVER, CMDPORT))
         
         fieldnames = ['TETH', 'CRAWL','GRIP', 'ARM',
@@ -122,9 +128,15 @@ def server_listener_start():
                       'PTZ_ZOOM', 'PTZ_FOCUS', 'PTZ_MOVEMENT']
         try:
             while True:
-                x = server.recvfrom(2048)
-                data = x[0]
-                data = pickle.loads(data)
+
+                to_control_box = {'DIRECTION': 'FORW'} #test code REMOVE
+
+                info_as_bytes = pickle.dumps(to_control_box) #test code REMOVE
+                server.sendto((info_as_bytes), (SERVER, CONTROL_BOX_PORT)) #test code REMOVE
+
+                data_from_control_box = server.recvfrom(2048)
+                data_from_control_box = data_from_control_box[0]
+                data = pickle.loads(data_from_control_box)
             
                 for key, value in data.items():
                     info[key] = value           
@@ -137,14 +149,32 @@ def server_listener_start():
 
 
                 if info['CRAWL'] == 'FORW':
+                    to_control_box = {'DIRECTION': 'FORW'} 
+
+                    info_as_bytes = pickle.dumps(to_control_box)
+                    server.sendto((info_as_bytes), (SERVER, CONTROL_BOX_PORT))
+
                     ROBOT.forward(speed=0.5)
+
                 if info['CRAWL'] == 'RIGHT':
                     ROBOT.right(speed=0.5) 
                 if info['CRAWL'] == 'BACK':
+
+                    to_control_box = {'DIRECTION': 'BACK'} 
+
+                    info_as_bytes = pickle.dumps(to_control_box)
+                    server.sendto((info_as_bytes), (SERVER, CONTROL_BOX_PORT))
+
                     ROBOT.backward(speed=0.5)
                 if info['CRAWL'] == 'LEFT':
                     ROBOT.left(speed=0.5)
                 if info['CRAWL'] == '':
+
+                    to_control_box = {'DIRECTION': ''} 
+
+                    info_as_bytes = pickle.dumps(to_control_box)
+                    server.sendto((info_as_bytes), (SERVER, CONTROL_BOX_PORT))
+
                     ROBOT.stop()
 
                 if info['ARM'] == 'EXT':

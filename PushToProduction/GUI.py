@@ -8,14 +8,17 @@ import socket, pickle
 SERVER = '192.168.0.19' #change ip in prod
 CMDPORT = 8000 
 
+SERVER_CONTROL_BOX = '192.168.0.23' # Enter CONTROL BOX address
+CONTROL_BOX_PORT = 10000 # port for control box positioning
+
 server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
 
 class VideoCaptureDevice:
     #highest res on pi is 1280, 720 using usb
     def __init__(self):
-        # self.vid = cv2.VideoCapture('http://192.168.0.19:9200/stream.mjpg') #change ip in prod 192.168.0.19
-        self.vid = cv2.VideoCapture(None)
+        self.vid = cv2.VideoCapture('http://192.168.0.19:9200/stream.mjpg') #change ip in prod 192.168.0.19
+        # self.vid = cv2.VideoCapture(None)
         self.rec = None
 
     def get_frame(self) -> tuple[bool, list[int]]:
@@ -87,9 +90,6 @@ class TetherButtonGroup(customtkinter.CTkFrame):
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
 class MovementButtonGroup(customtkinter.CTkFrame):
-
-    change_distance = False
-
     def __init__(self, master):
         super().__init__(master)
 
@@ -113,20 +113,22 @@ class MovementButtonGroup(customtkinter.CTkFrame):
         self.button = customtkinter.CTkButton(master=self, command=self.crawler_left, text="Left")
         self.button.grid(row=1, column=3, padx=20, pady=20)
 
-    def crawler_forward(self):  
-        global stop_position
+        self.button = customtkinter.CTkButton(master=self, command=self.crawler_stop, text="Stop")
+        self.button.grid(row=1, column=4, padx=20, pady=20)
 
-        stop_position = False  
-        app.position_start()
+    def crawler_forward(self):  
+       
+        position['Direction'] = 'FORW'
+        app.position_change()
 
         info = {'CRAWL': 'FORW'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
     def crawler_backward(self):
-        global stop_position
-
-        stop_position = True
+    
+        position['Direction'] = 'BACK'
+        app.position_change()
         
         info = {'CRAWL': 'BACK'}
         x_as_bytes = pickle.dumps(info)
@@ -139,6 +141,13 @@ class MovementButtonGroup(customtkinter.CTkFrame):
 
     def crawler_left(self):
         info = {'CRAWL': 'LEFT'}
+        x_as_bytes = pickle.dumps(info)
+        server.sendto((x_as_bytes), (SERVER, CMDPORT))
+
+    def crawler_stop(self):
+        position['Direction'] = ''
+
+        info = {'CRAWL': 'STOP'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
@@ -212,10 +221,10 @@ class ArmButtonGroup(customtkinter.CTkFrame):
 class App(customtkinter.CTk):
 
     customtkinter.set_appearance_mode("dark")
-    global rec_toggle, video_screen_dim, stop_position
+    global rec_toggle, video_screen_dim, position
     rec_toggle = False
     video_screen_dim = (960, 540)
-    stop_position = False
+    position = {'Direction': ''}
     meters = 0
 
     def __init__(self):
@@ -251,6 +260,7 @@ class App(customtkinter.CTk):
         self.distance = customtkinter.CTkTextbox(master=self,height=10, font=("", 20))
         self.distance.grid(row=1, column=1, padx=20, pady=20, sticky="w")
         self.distance.insert("0.0", "0 m")
+        self.position_change()
 
         # window buttons
 
@@ -276,7 +286,7 @@ class App(customtkinter.CTk):
         # gripper frame
 
         self.frame = GripperButtonGroup(master=self)
-        self.frame.grid(row=4, column=0, columnspan=2, padx=(20, 0), pady=20, sticky="ew")
+        self.frame.grid(row=4, column=0, columnspan=2, padx=(20, 0), pady=20, sticky="w")
 
         # arm frame
 
@@ -284,6 +294,7 @@ class App(customtkinter.CTk):
         self.frame.grid(row=5, column=0, padx=(20, 0), pady=20, sticky="w")
         
         # video buttons
+        
         self.label = customtkinter.CTkLabel(self, text="Video Settings")
         self.label.grid(row=2, column=1, padx=20, pady=(0, 0), sticky="ne")
 
@@ -336,15 +347,20 @@ class App(customtkinter.CTk):
         self.time.delete("0.0", "end")
         self.time.insert("0.0", current_time)
         self.after(1000, self.time_start)
-
-    def position_start(self):
-        self.meters += 1
-        self.distance.delete("0.0", "end")
-        self.distance.insert("0.0", f"{self.meters} m")
-        x = self.after(7000, self.position_start)
-        if stop_position:
-            self.after_cancel(x)
-            x = None
+        
+    def position_change(self):
+        if position['Direction'] == 'FORW':
+            self.meters += 0.01
+            self.distance.delete("0.0", "end")
+            self.distance.insert("0.0", f"{self.meters} m")
+        elif position['Direction'] == 'BACK':
+            self.meters -= 0.01
+            self.distance.delete("0.0", "end")
+            self.distance.insert("0.0", f"{round(self.meters, 2)} m")
+        run = self.after(1000, self.position_change)
+        if position['Direction'] == '':
+            self.after_cancel(run)
+            run = None
 
     def max_window(self):
         self.geometry("{}x{}-{}+0".format(1920, 1080, 1928))
