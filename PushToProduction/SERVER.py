@@ -1,7 +1,6 @@
 import cv2, socket, pickle, csv, os # type: ignore
 from gpiozero import Robot, Motor # type: ignore
 from multiprocessing import Process
-from subprocess import call
 from libcamera import controls # type: ignore
 from picamera2 import Picamera2 # type: ignore
 from http import server
@@ -9,8 +8,6 @@ import socketserver
 import logging
 from Focuser import Focuser # type: ignore
 from Autofocus import AutoFocus # type: ignore
-
-# call("sudo shutdown -h now", shell=True)
 
 SERVER_CRAWLER = '192.168.0.19' # Enter  CRAWLER address 
 SERVER_CONTROL_BOX = '192.168.0.23' # Enter CONTROL BOX address
@@ -149,30 +146,30 @@ def server_listener_start():
                     info_as_bytes = pickle.dumps(to_control_box)
                     server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CTRLBXPORT_0))
                     ROBOT.forward(speed=0.5)
-
                 if info['CRAWL'] == 'RIGHT':
                     to_control_box = {'DIRECTION': 'RIGHT'} 
                     info_as_bytes = pickle.dumps(to_control_box)
                     server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CTRLBXPORT_0))
                     ROBOT.right(speed=0.5) 
-
                 if info['CRAWL'] == 'BACK':
                     to_control_box = {'DIRECTION': 'BACK'} 
                     info_as_bytes = pickle.dumps(to_control_box)
                     server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CTRLBXPORT_0))
                     ROBOT.backward(speed=0.5)
-
                 if info['CRAWL'] == 'LEFT':
                     to_control_box = {'DIRECTION': 'LEFT'} 
                     info_as_bytes = pickle.dumps(to_control_box)
                     server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CTRLBXPORT_0))
                     ROBOT.left(speed=0.5)
-
                 if info['CRAWL'] == 'STOP':
                     to_control_box = {'DIRECTION': 'STOP'} 
                     info_as_bytes = pickle.dumps(to_control_box)
                     server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CTRLBXPORT_0))
                     ROBOT.stop()
+                if info['CRAWL'] == 'SHUTDOWN':
+                    ROBOT.stop()
+                    os.system('sudo shutdown -h now')
+
 
                 if info['ARM'] == 'EXT':
                     pass
@@ -205,51 +202,37 @@ def server_listener_start():
                     autoFocus = AutoFocus(FOCUSER, 'http://192.168.0.19:9100/stream.mjpg')
                     autoFocus.debug = False
                     autoFocus.startFocus()
-
                     to_control_box = {'FOCUS': FOCUSER.get(Focuser.OPT_FOCUS), 'ZOOM': FOCUSER.get(Focuser.OPT_ZOOM)} 
                     info_as_bytes = pickle.dumps(to_control_box)
                     server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CTRLBXPORT_1))
-
-
                 if info['PTZ_FOCUS'].split('_')[0] == 'ON':
                     FOCUSER.set(Focuser.OPT_FOCUS, int(info['PTZ_FOCUS'].split('_')[1]))
-
                     to_control_box = {'FOCUS': FOCUSER.get(Focuser.OPT_FOCUS)} 
                     info_as_bytes = pickle.dumps(to_control_box)
                     server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CTRLBXPORT_1))
-
                 if info['PTZ_FOCUS'] == '+':
                     FOCUSER.set(Focuser.OPT_FOCUS,FOCUSER.get(Focuser.OPT_FOCUS) + 100)
-
                     to_control_box = {'FOCUS': FOCUSER.get(Focuser.OPT_FOCUS)} 
                     info_as_bytes = pickle.dumps(to_control_box)
                     server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CTRLBXPORT_1))
-
                 if info['PTZ_FOCUS'] == '-':
                     FOCUSER.set(Focuser.OPT_FOCUS,FOCUSER.get(Focuser.OPT_FOCUS) - 100)
-
                     to_control_box = {'FOCUS': FOCUSER.get(Focuser.OPT_FOCUS)} 
                     info_as_bytes = pickle.dumps(to_control_box)
                     server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CTRLBXPORT_1))
-
-
                 if info['PTZ_ZOOM'].split('_')[0] == 'ON':
                     FOCUSER.set(Focuser.OPT_ZOOM, int(info['PTZ_ZOOM'].split('_')[1]))
-
                     to_control_box = {'ZOOM': FOCUSER.get(Focuser.OPT_ZOOM)} 
                     info_as_bytes = pickle.dumps(to_control_box)
                     server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CTRLBXPORT_1))
-
                 if info['PTZ_ZOOM'] == '+':
                     FOCUSER.set(Focuser.OPT_ZOOM,FOCUSER.get(Focuser.OPT_ZOOM) + 1000)
-
                     to_control_box = {'ZOOM': FOCUSER.get(Focuser.OPT_ZOOM)} 
                     info_as_bytes = pickle.dumps(to_control_box)
                     server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CTRLBXPORT_1))
 
                 if info['PTZ_ZOOM'] == '-':
                     FOCUSER.set(Focuser.OPT_ZOOM,FOCUSER.get(Focuser.OPT_ZOOM) -1000)
-
                     to_control_box = {'ZOOM': FOCUSER.get(Focuser.OPT_ZOOM)} 
                     info_as_bytes = pickle.dumps(to_control_box)
                     server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CTRLBXPORT_1))

@@ -3,7 +3,7 @@ from PIL import Image, ImageTk # type: ignore
 from datetime import datetime
 import uuid
 
-import multiprocessing, ctypes
+import multiprocessing
 import socket, pickle
 
 SERVER_CRAWLER = '192.168.0.19' 
@@ -131,6 +131,9 @@ class MovementButtonGroup(customtkinter.CTkFrame):
         self.button = customtkinter.CTkButton(master=self, command=self.crawler_stop, text="Stop")
         self.button.grid(row=2, column=1, padx=5, pady=5, sticky='n')
 
+        self.button = customtkinter.CTkButton(master=self, command=self.crawler_shutdown, text="Shutdown")
+        self.button.grid(row=2, column=3, padx=20, pady=5)
+
         # estimated distance
 
         self.label = customtkinter.CTkLabel(self, text="Distance")
@@ -163,6 +166,11 @@ class MovementButtonGroup(customtkinter.CTkFrame):
 
     def crawler_stop(self):
         info_to_crawler = {'CRAWL': 'STOP'}
+        x_as_bytes = pickle.dumps(info_to_crawler)
+        server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
+
+    def crawler_shutdown(self):
+        info_to_crawler = {'CRAWL': 'SHUTDOWN'}
         x_as_bytes = pickle.dumps(info_to_crawler)
         server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
 

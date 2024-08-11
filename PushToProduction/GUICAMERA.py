@@ -182,14 +182,14 @@ class PTZButtonGroup(customtkinter.CTkFrame):
         self.zoom_and_focus_change()
 
     def zoom_slider(self, value):
-            info_to_crawler = {'PTZ_ZOOM': f'ON_{round(value)}'}
-            x_as_bytes = pickle.dumps(info_to_crawler)
-            server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
+        info_to_crawler = {'PTZ_ZOOM': f'ON_{round(value)}'}
+        x_as_bytes = pickle.dumps(info_to_crawler)
+        server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
     
     def focus_slider(self, value):
-            info_to_crawler = {'PTZ_FOCUS': f'ON_{round(value)}'}
-            x_as_bytes = pickle.dumps(info_to_crawler)
-            server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
+        info_to_crawler = {'PTZ_FOCUS': f'ON_{round(value)}'}
+        x_as_bytes = pickle.dumps(info_to_crawler)
+        server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
 
     def more_zoom(self):
         info_to_crawler = {'PTZ_ZOOM': '+'}
@@ -242,10 +242,8 @@ class PTZButtonGroup(customtkinter.CTkFrame):
         server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
 
     def zoom_and_focus_change(self):
-       
         self.focus.set(int(info_to_control.value['FOCUS']))
         self.zoom.set(int(info_to_control.value['ZOOM']))
-
         self.after(3000, self.zoom_and_focus_change)
 
 class App(customtkinter.CTk):
