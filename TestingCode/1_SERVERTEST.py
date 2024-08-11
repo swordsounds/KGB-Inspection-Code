@@ -1,37 +1,15 @@
 import socket, pickle
-import threading
 
-HEADER = 2048
-PORT = 8000
-SERVER = socket.gethostbyname(socket.gethostname())
-ADDR= (SERVER, PORT)
-FORMAT = 'utf-8'
-DC_MESSAGE = "!DISCONNECT"
+SERVER_CONTROL_BOX = '192.168.0.23'
+CONTROL_BOX_PORT = 10000
 
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server.bind(ADDR)
+server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
+server.bind((SERVER_CONTROL_BOX, CONTROL_BOX_PORT))
 
-def handle_client(conn, addr):
-    print(f"Connection {addr}")
-    connected = True
-    while connected:
-        msg_length = conn.recv(HEADER).decode(FORMAT)
-        if msg_length:
-            msg_length = int(msg_length)
-            msg = conn.recv(msg_length).decode(FORMAT)
-            if msg == DC_MESSAGE:
-                connected = False
-        conn.sendto('Ping'.encode(FORMAT), (SERVER, PORT))
-    conn.close()
+while True:
 
-def start():
-    server.listen()
-    print(f"Server Listening... {SERVER}")
-    while True:
-        conn, addr = server.accept()
-        thread = threading.Thread(target=handle_client, args=(conn, addr))
-        thread.start()
-        print(f"Connections: {threading.active_count() - 1}")
-        
-print("Starting server...")
-start()
+    data_from_control_box = server.recvfrom(2048)
+    data_from_control_box = data_from_control_box[0]
+    data = pickle.loads(data_from_control_box)
+    print(data)

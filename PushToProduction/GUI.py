@@ -3,17 +3,32 @@ from PIL import Image, ImageTk # type: ignore
 from datetime import datetime
 import uuid
 
+from multiprocessing import Process
 import socket, pickle
 
-SERVER = '192.168.0.19' #change ip in prod
+SERVER = '192.168.0.19' 
 CMDPORT = 8000 
 
-SERVER_CONTROL_BOX = '192.168.0.23' # Enter CONTROL BOX address
-CONTROL_BOX_PORT = 10000 # port for control box positioning
+SERVER_CONTROL_BOX = '192.168.0.23' #change ip in prod
+CONTROL_BOX_PORT = 10000
 
 server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
 
+data: dict[str] = {'DIRECTION' : ''}
+
+def server_listener_start():
+    server.bind((SERVER_CONTROL_BOX, CONTROL_BOX_PORT))
+    try:
+        while True:
+            global data
+            data_from_crawler = server.recvfrom(2048)
+            data_from_crawler = data_from_crawler[0]
+            data = pickle.loads(data_from_crawler)
+            
+    except Exception as e:
+        print(e)
+    
 class VideoCaptureDevice:
     #highest res on pi is 1280, 720 using usb
     def __init__(self):
@@ -117,19 +132,11 @@ class MovementButtonGroup(customtkinter.CTkFrame):
         self.button.grid(row=1, column=4, padx=20, pady=20)
 
     def crawler_forward(self):  
-       
-        position['Direction'] = 'FORW'
-        app.position_change()
-
         info = {'CRAWL': 'FORW'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
     def crawler_backward(self):
-    
-        position['Direction'] = 'BACK'
-        app.position_change()
-        
         info = {'CRAWL': 'BACK'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
@@ -145,8 +152,6 @@ class MovementButtonGroup(customtkinter.CTkFrame):
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
     def crawler_stop(self):
-        position['Direction'] = ''
-
         info = {'CRAWL': 'STOP'}
         x_as_bytes = pickle.dumps(info)
         server.sendto((x_as_bytes), (SERVER, CMDPORT))
@@ -221,10 +226,9 @@ class ArmButtonGroup(customtkinter.CTkFrame):
 class App(customtkinter.CTk):
 
     customtkinter.set_appearance_mode("dark")
-    global rec_toggle, video_screen_dim, position
+    global rec_toggle, video_screen_dim
     rec_toggle = False
     video_screen_dim = (960, 540)
-    position = {'Direction': ''}
     meters = 0
 
     def __init__(self):
@@ -317,7 +321,7 @@ class App(customtkinter.CTk):
         # info resetter
 
         self.info_reset()
-
+ 
     def video_update(self):
         try:
             ret, frame = self.vid.get_frame()        
@@ -349,18 +353,12 @@ class App(customtkinter.CTk):
         self.after(1000, self.time_start)
         
     def position_change(self):
-        if position['Direction'] == 'FORW':
+        print(data)
+        if data['DIRECTION'] == 'FORW':
             self.meters += 0.01
             self.distance.delete("0.0", "end")
-            self.distance.insert("0.0", f"{self.meters} m")
-        elif position['Direction'] == 'BACK':
-            self.meters -= 0.01
-            self.distance.delete("0.0", "end")
-            self.distance.insert("0.0", f"{round(self.meters, 2)} m")
-        run = self.after(1000, self.position_change)
-        if position['Direction'] == '':
-            self.after_cancel(run)
-            run = None
+            self.distance.insert("0.0", f'{self.meters}')
+        self.after(1000, self.position_change)
 
     def max_window(self):
         self.geometry("{}x{}-{}+0".format(1920, 1080, 1928))
@@ -378,5 +376,8 @@ class App(customtkinter.CTk):
         self.after(20, self.info_reset)
 
 if __name__ == "__main__":
+    print(data)
+    t = Process(target=server_listener_start)
     app = App()
+    t.start()
     app.mainloop()
