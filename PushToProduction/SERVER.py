@@ -145,31 +145,32 @@ def server_listener_start():
 
                 if info['CRAWL'] == 'FORW':
                     to_control_box = {'DIRECTION': 'FORW'} 
-
                     info_as_bytes = pickle.dumps(to_control_box)
                     server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CONTROL_BOX_PORT))
-
                     ROBOT.forward(speed=0.5)
 
                 if info['CRAWL'] == 'RIGHT':
+                    to_control_box = {'DIRECTION': 'RIGHT'} 
+                    info_as_bytes = pickle.dumps(to_control_box)
+                    server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CONTROL_BOX_PORT))
                     ROBOT.right(speed=0.5) 
+
                 if info['CRAWL'] == 'BACK':
-
                     to_control_box = {'DIRECTION': 'BACK'} 
-
                     info_as_bytes = pickle.dumps(to_control_box)
                     server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CONTROL_BOX_PORT))
-
                     ROBOT.backward(speed=0.5)
+
                 if info['CRAWL'] == 'LEFT':
-                    ROBOT.left(speed=0.5)
-                if info['CRAWL'] == 'STOP':
-
-                    to_control_box = {'DIRECTION': 'STOP'} 
-
+                    to_control_box = {'DIRECTION': 'LEFT'} 
                     info_as_bytes = pickle.dumps(to_control_box)
                     server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CONTROL_BOX_PORT))
+                    ROBOT.left(speed=0.5)
 
+                if info['CRAWL'] == 'STOP':
+                    to_control_box = {'DIRECTION': 'STOP'} 
+                    info_as_bytes = pickle.dumps(to_control_box)
+                    server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CONTROL_BOX_PORT))
                     ROBOT.stop()
 
                 if info['ARM'] == 'EXT':

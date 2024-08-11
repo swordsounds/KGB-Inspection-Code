@@ -25,7 +25,7 @@ def server_listener_start(info):
             info.value = data
     except Exception as e:
         print(e)
-         
+
 class VideoCaptureDevice:
     #highest res on pi is 1280, 720 using usb
     def __init__(self):
@@ -252,14 +252,14 @@ class App(customtkinter.CTk):
         # time display 
 
         self.time = customtkinter.CTkTextbox(master=self,height=10, font=("", 20))
-        self.time.grid(row=1, column=0, padx=20, pady=20, sticky="w")
+        self.time.grid(row=0, column=0, padx=20, pady=20, sticky="w")
         self.time.insert("0.0", 'CURRENT_TIME')
         self.time_start()
 
         # estimated distance
 
         self.distance = customtkinter.CTkTextbox(master=self,height=10, font=("", 20))
-        self.distance.grid(row=1, column=1, padx=20, pady=20, sticky="w")
+        self.distance.grid(row=0, column=1, padx=20, pady=20, sticky="w")
         self.distance.insert("0.0", "0 m")
         self.position_change()
 
@@ -355,7 +355,7 @@ class App(customtkinter.CTk):
         elif info.value['DIRECTION'] == 'BACK':
             self.meters -= 0.01
         self.distance.delete("0.0", "end")
-        self.distance.insert("0.0", f'{round(self.meters, 2)} meters')
+        self.distance.insert("0.0", f'{round(self.meters, 2)} m')
         self.after(500, self.position_change)
 
     def max_window(self):
