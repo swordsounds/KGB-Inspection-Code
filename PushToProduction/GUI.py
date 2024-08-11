@@ -3,7 +3,7 @@ from PIL import Image, ImageTk # type: ignore
 from datetime import datetime
 import uuid
 
-from multiprocessing import Process
+import multiprocessing, ctypes
 import socket, pickle
 
 SERVER = '192.168.0.19' 
@@ -15,19 +15,17 @@ CONTROL_BOX_PORT = 10000
 server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
 
-def server_listener_start():
-    global data
+def server_listener_start(info):
     server.bind((SERVER_CONTROL_BOX, CONTROL_BOX_PORT))
-    data: dict[str] = {'DIRECTION' : ''}
     try:
         while True:
             data_from_crawler = server.recvfrom(2048)
             data_from_crawler = data_from_crawler[0]
-            data = pickle.loads(data_from_crawler)
-            
+            data = pickle.loads(data_from_crawler)  
+            info.value = data
     except Exception as e:
         print(e)
-    
+         
 class VideoCaptureDevice:
     #highest res on pi is 1280, 720 using usb
     def __init__(self):
@@ -352,12 +350,13 @@ class App(customtkinter.CTk):
         self.after(1000, self.time_start)
         
     def position_change(self):
-        print(data)
-        if data['DIRECTION'] == 'FORW':
+        if info.value['DIRECTION'] == 'FORW':
             self.meters += 0.01
-            self.distance.delete("0.0", "end")
-            self.distance.insert("0.0", f'{self.meters}')
-        self.after(1000, self.position_change)
+        elif info.value['DIRECTION'] == 'BACK':
+            self.meters -= 0.01
+        self.distance.delete("0.0", "end")
+        self.distance.insert("0.0", f'{round(self.meters, 2)} meters')
+        self.after(500, self.position_change)
 
     def max_window(self):
         self.geometry("{}x{}-{}+0".format(1920, 1080, 1928))
@@ -375,8 +374,8 @@ class App(customtkinter.CTk):
         self.after(20, self.info_reset)
 
 if __name__ == "__main__":
-    print(data)
-    t = Process(target=server_listener_start)
+    info = multiprocessing.Manager().Value('i', {'DIRECTION': ''})
+    t = multiprocessing.Process(target=server_listener_start, args=(info,))
     app = App()
     t.start()
     app.mainloop()
