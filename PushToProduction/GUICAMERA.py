@@ -2,13 +2,32 @@ import cv2, tkinter as tk, customtkinter # type: ignore
 from PIL import Image, ImageTk # type: ignore
 import uuid
 
+import multiprocessing
 import socket, pickle
 
-SERVER = '192.168.0.19' #change ip to static ip in prod
+SERVER_CRAWLER = '192.168.0.19' #change ip to static ip in prod
 CMDPORT = 8000 
+
+SERVER_CONTROL_BOX = '192.168.0.23' #change ip in prod
+CTRLBXPORT_1 = 11000
 
 server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
+
+def server_listener_start(info_to_control):
+    server.bind((SERVER_CONTROL_BOX, CTRLBXPORT_1))
+
+    temp = {}
+    try:
+        while True:
+            data_from_crawler = server.recvfrom(2048)
+            data_from_crawler = data_from_crawler[0]
+            data = pickle.loads(data_from_crawler) 
+            for key, value in data.items():
+                temp[key] = value
+            info_to_control.value = temp
+    except Exception as e:
+        print(e)
 
 class VideoCaptureDevice:
     #highest res on pi is 1280, 720 using usb
@@ -77,29 +96,29 @@ class CameraButtonGroup(customtkinter.CTkFrame):
         self.button.grid(row=1, column=2,padx=20, pady=20)
 
     def cam_one(self):
-        info = {'ARDU_CAMERA': 'ONE'}
-        x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (SERVER, CMDPORT))
+        info_to_crawler = {'ARDU_CAMERA': 'ONE'}
+        x_as_bytes = pickle.dumps(info_to_crawler)
+        server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
 
     def cam_two(self):
-        info = {'ARDU_CAMERA': 'TWO'}
-        x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (SERVER, CMDPORT))
+        info_to_crawler = {'ARDU_CAMERA': 'TWO'}
+        x_as_bytes = pickle.dumps(info_to_crawler)
+        server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
 
     def cam_three(self):
-        info = {'ARDU_CAMERA': 'THREE'}
-        x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (SERVER, CMDPORT))
+        info_to_crawler = {'ARDU_CAMERA': 'THREE'}
+        x_as_bytes = pickle.dumps(info_to_crawler)
+        server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
 
     def cam_four(self):
-        info = {'ARDU_CAMERA': 'FOUR'}
-        x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (SERVER, CMDPORT))
+        info_to_crawler = {'ARDU_CAMERA': 'FOUR'}
+        x_as_bytes = pickle.dumps(info_to_crawler)
+        server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
 
     def reset(self):
-        info = {'ARDU_CAMERA': 'RESET'}
-        x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (SERVER, CMDPORT))
+        info_to_crawler = {'ARDU_CAMERA': 'RESET'}
+        x_as_bytes = pickle.dumps(info_to_crawler)
+        server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
 
 class PTZButtonGroup(customtkinter.CTkFrame):
     def __init__(self, master):
@@ -128,9 +147,9 @@ class PTZButtonGroup(customtkinter.CTkFrame):
 
         # focus buttons
 
-        self.slider = customtkinter.CTkSlider(master=self, from_=0, to=100, command=self.focus_slider)
-        self.slider.set(0)
-        self.slider.grid(row=2, column=3, padx=20, pady=20)
+        self.focus = customtkinter.CTkSlider(master=self, from_=0, to=20000, command=self.focus_slider)
+        self.focus.set(0)
+        self.focus.grid(row=2, column=3, padx=20, pady=20)
 
         self.button = customtkinter.CTkButton(master=self, command=self.more_focus, text="Focus In")
         self.button.grid(row=2, column=0, padx=20, pady=20)
@@ -143,9 +162,9 @@ class PTZButtonGroup(customtkinter.CTkFrame):
 
         # zoom buttons
 
-        self.slider = customtkinter.CTkSlider(master=self, from_=0, to=100, command=self.zoom_slider)
-        self.slider.set(0)
-        self.slider.grid(row=3, column=3, padx=20, pady=20)
+        self.zoom = customtkinter.CTkSlider(master=self, from_=0, to=20000, command=self.zoom_slider)
+        self.zoom.set(3000)
+        self.zoom.grid(row=3, column=3, padx=20, pady=20)
 
         self.button = customtkinter.CTkButton(master=self, command=self.more_zoom, text="Zoom In")
         self.button.grid(row=3, column=0, padx=20, pady=20)
@@ -158,70 +177,76 @@ class PTZButtonGroup(customtkinter.CTkFrame):
         self.button = customtkinter.CTkButton(master=self, command=self.ir_cut, text="IR Cut")
         self.button.grid(row=3, column=2, padx=20, pady=20)
 
-    def zoom_slider(self, value):
-            zoom_amt = value/100 * 20000
+        # zoom and focus change
 
-            info = {'PTZ_ZOOM': f'ON_{round(zoom_amt)}'}
-            x_as_bytes = pickle.dumps(info)
-            server.sendto((x_as_bytes), (SERVER, CMDPORT))
+        self.zoom_and_focus_change()
+
+    def zoom_slider(self, value):
+            info_to_crawler = {'PTZ_ZOOM': f'ON_{round(value)}'}
+            x_as_bytes = pickle.dumps(info_to_crawler)
+            server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
     
     def focus_slider(self, value):
-            
-            focus_amt = value/100 * 20000
-
-            info = {'PTZ_FOCUS': f'ON_{round(focus_amt)}'}
-            x_as_bytes = pickle.dumps(info)
-            server.sendto((x_as_bytes), (SERVER, CMDPORT))
+            info_to_crawler = {'PTZ_FOCUS': f'ON_{round(value)}'}
+            x_as_bytes = pickle.dumps(info_to_crawler)
+            server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
 
     def more_zoom(self):
-        info = {'PTZ_ZOOM': '+'}
-        x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (SERVER, CMDPORT))
+        info_to_crawler = {'PTZ_ZOOM': '+'}
+        x_as_bytes = pickle.dumps(info_to_crawler)
+        server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
 
     def less_zoom(self):
-        info = {'PTZ_ZOOM': '-'}
-        x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (SERVER, CMDPORT))
+        info_to_crawler = {'PTZ_ZOOM': '-'}
+        x_as_bytes = pickle.dumps(info_to_crawler)
+        server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
 
     def more_focus(self):
-        info = {'PTZ_FOCUS': '+'}
-        x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (SERVER, CMDPORT))
+        info_to_crawler = {'PTZ_FOCUS': '+'}
+        x_as_bytes = pickle.dumps(info_to_crawler)
+        server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
 
     def less_focus(self):
-        info = {'PTZ_FOCUS': '-'}
-        x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (SERVER, CMDPORT))
+        info_to_crawler = {'PTZ_FOCUS': '-'}
+        x_as_bytes = pickle.dumps(info_to_crawler)
+        server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
         
     def auto_focus(self):
-        info = {'PTZ_FOCUS': 'AUTO'}
-        x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (SERVER, CMDPORT))
+        info_to_crawler = {'PTZ_FOCUS': 'AUTO'}
+        x_as_bytes = pickle.dumps(info_to_crawler)
+        server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
 
     def servo_left(self):
         info = {'PTZ_MOVEMENT': 'LEFT'}
         x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (SERVER, CMDPORT))
+        server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
 
     def servo_right(self):
-        info = {'PTZ_MOVEMENT': 'RIGHT'}
-        x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (SERVER, CMDPORT))
+        info_to_crawler = {'PTZ_MOVEMENT': 'RIGHT'}
+        x_as_bytes = pickle.dumps(info_to_crawler)
+        server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
     
     def servo_up(self):
-        info = {'PTZ_MOVEMENT': 'UP'}
-        x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (SERVER, CMDPORT))
+        info_to_crawler = {'PTZ_MOVEMENT': 'UP'}
+        x_as_bytes = pickle.dumps(info_to_crawler)
+        server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
 
     def servo_down(self):
-        info = {'PTZ_MOVEMENT': 'DOWN'}
-        x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (SERVER, CMDPORT))
+        info_to_crawler = {'PTZ_MOVEMENT': 'DOWN'}
+        x_as_bytes = pickle.dumps(info_to_crawler)
+        server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
     
     def ir_cut(self):
-        info = {'IR_CUT': 'True'}
-        x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (SERVER, CMDPORT))
+        info_to_crawler = {'IR_CUT': 'True'}
+        x_as_bytes = pickle.dumps(info_to_crawler)
+        server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
+
+    def zoom_and_focus_change(self):
+       
+        self.focus.set(int(info_to_control.value['FOCUS']))
+        self.zoom.set(int(info_to_control.value['ZOOM']))
+
+        self.after(3000, self.zoom_and_focus_change)
 
 class App(customtkinter.CTk):
 
@@ -347,11 +372,14 @@ class App(customtkinter.CTk):
         self.destroy()
 
     def info_reset(self):
-        info = {'PTZ_ZOOM': '', 'PTZ_FOCUS': '', 'PTZ_MOVEMENT': '', 'IR_CUT': '', 'CRAWL': ''}
-        x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (SERVER, CMDPORT))
-        self.after(20, self.info_reset)
+        info_to_crawler = {'PTZ_ZOOM': '', 'PTZ_FOCUS': '', 'PTZ_MOVEMENT': '', 'IR_CUT': ''}
+        x_as_bytes = pickle.dumps(info_to_crawler)
+        server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
+        self.after(50, self.info_reset)
 
 if __name__ == "__main__":
+    info_to_control = multiprocessing.Manager().Value('i', {'FOCUS': 0, 'ZOOM': 0})
+    t = multiprocessing.Process(target=server_listener_start, args=(info_to_control,))
     app = App()
+    t.start()
     app.mainloop()

@@ -12,7 +12,7 @@ from Autofocus import AutoFocus # type: ignore
 
 # call("sudo shutdown -h now", shell=True)
 
-SERVER = '192.168.0.19' # Enter  CRAWLER address 
+SERVER_CRAWLER = '192.168.0.19' # Enter  CRAWLER address 
 SERVER_CONTROL_BOX = '192.168.0.23' # Enter CONTROL BOX address
 # SERVER_CONTROL_BOX = '192.168.0.26' # Enter CONTROL BOX address
 
@@ -22,7 +22,8 @@ VIDPORT_2 = 9200 # video port
 VIDPORT_3 = 9300 # video port
 CMDPORT = 8000 # port for crawler commands
 
-CONTROL_BOX_PORT = 10000 # port for control box positioning
+CTRLBXPORT_0 = 10000 # port for control box positioning
+CTRLBXPORT_1 = 11000 # port for control box guicamera sliders
 
 FOCUSER = Focuser(1)
 
@@ -121,11 +122,11 @@ def server_listener_start():
 
         server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
-        server.bind((SERVER, CMDPORT))
+        server.bind((SERVER_CRAWLER, CMDPORT))
         
-        fieldnames = ['TETH', 'CRAWL','GRIP', 'ARM',
-                      'ARDU_CAMERA', 'IR_CUT',
-                      'PTZ_ZOOM', 'PTZ_FOCUS', 'PTZ_MOVEMENT']
+        fieldnames = ['TETH', 'CRAWL','GRIP', 'ARM', #test code REMOVE    
+                      'ARDU_CAMERA', 'IR_CUT', #test code REMOVE    
+                      'PTZ_ZOOM', 'PTZ_FOCUS', 'PTZ_MOVEMENT'] #test code REMOVE    
         try:
             while True:
 
@@ -146,31 +147,31 @@ def server_listener_start():
                 if info['CRAWL'] == 'FORW':
                     to_control_box = {'DIRECTION': 'FORW'} 
                     info_as_bytes = pickle.dumps(to_control_box)
-                    server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CONTROL_BOX_PORT))
+                    server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CTRLBXPORT_0))
                     ROBOT.forward(speed=0.5)
 
                 if info['CRAWL'] == 'RIGHT':
                     to_control_box = {'DIRECTION': 'RIGHT'} 
                     info_as_bytes = pickle.dumps(to_control_box)
-                    server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CONTROL_BOX_PORT))
+                    server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CTRLBXPORT_0))
                     ROBOT.right(speed=0.5) 
 
                 if info['CRAWL'] == 'BACK':
                     to_control_box = {'DIRECTION': 'BACK'} 
                     info_as_bytes = pickle.dumps(to_control_box)
-                    server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CONTROL_BOX_PORT))
+                    server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CTRLBXPORT_0))
                     ROBOT.backward(speed=0.5)
 
                 if info['CRAWL'] == 'LEFT':
                     to_control_box = {'DIRECTION': 'LEFT'} 
                     info_as_bytes = pickle.dumps(to_control_box)
-                    server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CONTROL_BOX_PORT))
+                    server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CTRLBXPORT_0))
                     ROBOT.left(speed=0.5)
 
                 if info['CRAWL'] == 'STOP':
                     to_control_box = {'DIRECTION': 'STOP'} 
                     info_as_bytes = pickle.dumps(to_control_box)
-                    server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CONTROL_BOX_PORT))
+                    server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CTRLBXPORT_0))
                     ROBOT.stop()
 
                 if info['ARM'] == 'EXT':
@@ -204,21 +205,54 @@ def server_listener_start():
                     autoFocus = AutoFocus(FOCUSER, 'http://192.168.0.19:9100/stream.mjpg')
                     autoFocus.debug = False
                     autoFocus.startFocus()
+
+                    to_control_box = {'FOCUS': FOCUSER.get(Focuser.OPT_FOCUS), 'ZOOM': FOCUSER.get(Focuser.OPT_ZOOM)} 
+                    info_as_bytes = pickle.dumps(to_control_box)
+                    server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CTRLBXPORT_1))
+
+
                 if info['PTZ_FOCUS'].split('_')[0] == 'ON':
                     FOCUSER.set(Focuser.OPT_FOCUS, int(info['PTZ_FOCUS'].split('_')[1]))
+
+                    to_control_box = {'FOCUS': FOCUSER.get(Focuser.OPT_FOCUS)} 
+                    info_as_bytes = pickle.dumps(to_control_box)
+                    server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CTRLBXPORT_1))
+
                 if info['PTZ_FOCUS'] == '+':
                     FOCUSER.set(Focuser.OPT_FOCUS,FOCUSER.get(Focuser.OPT_FOCUS) + 100)
+
+                    to_control_box = {'FOCUS': FOCUSER.get(Focuser.OPT_FOCUS)} 
+                    info_as_bytes = pickle.dumps(to_control_box)
+                    server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CTRLBXPORT_1))
+
                 if info['PTZ_FOCUS'] == '-':
                     FOCUSER.set(Focuser.OPT_FOCUS,FOCUSER.get(Focuser.OPT_FOCUS) - 100)
 
+                    to_control_box = {'FOCUS': FOCUSER.get(Focuser.OPT_FOCUS)} 
+                    info_as_bytes = pickle.dumps(to_control_box)
+                    server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CTRLBXPORT_1))
 
 
                 if info['PTZ_ZOOM'].split('_')[0] == 'ON':
                     FOCUSER.set(Focuser.OPT_ZOOM, int(info['PTZ_ZOOM'].split('_')[1]))
+
+                    to_control_box = {'ZOOM': FOCUSER.get(Focuser.OPT_ZOOM)} 
+                    info_as_bytes = pickle.dumps(to_control_box)
+                    server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CTRLBXPORT_1))
+
                 if info['PTZ_ZOOM'] == '+':
                     FOCUSER.set(Focuser.OPT_ZOOM,FOCUSER.get(Focuser.OPT_ZOOM) + 1000)
+
+                    to_control_box = {'ZOOM': FOCUSER.get(Focuser.OPT_ZOOM)} 
+                    info_as_bytes = pickle.dumps(to_control_box)
+                    server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CTRLBXPORT_1))
+
                 if info['PTZ_ZOOM'] == '-':
                     FOCUSER.set(Focuser.OPT_ZOOM,FOCUSER.get(Focuser.OPT_ZOOM) -1000)
+
+                    to_control_box = {'ZOOM': FOCUSER.get(Focuser.OPT_ZOOM)} 
+                    info_as_bytes = pickle.dumps(to_control_box)
+                    server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CTRLBXPORT_1))
 
 
 
@@ -263,8 +297,8 @@ def video_0_start():
     vid0 = StreamProps
     vid0.set_Mode(StreamProps, 'picamera2')
     vid0.set_Capture(StreamProps, ardu_cam)
-    vid_stream_0 = Streamer((SERVER, VIDPORT_0), vid0)
-    print('Stream started at','http://{}:{}/stream.mjpg'.format(SERVER, VIDPORT_0))
+    vid_stream_0 = Streamer((SERVER_CRAWLER, VIDPORT_0), vid0)
+    print('Stream started at','http://{}:{}/stream.mjpg'.format(SERVER_CRAWLER, VIDPORT_0))
     ardu_cam.set_controls({"AfMode":controls.AfModeEnum.Continuous})
 
     vid_stream_0.serve_forever()
@@ -280,8 +314,8 @@ def video_1_start():
     vid1 = StreamProps
     vid1.set_Mode(StreamProps, 'picamera2')
     vid1.set_Capture(StreamProps, ptz_cam)
-    vid_stream_1 = Streamer((SERVER, VIDPORT_1), vid1)
-    print('Stream started at','http://{}:{}/stream.mjpg'.format(SERVER, VIDPORT_1))
+    vid_stream_1 = Streamer((SERVER_CRAWLER, VIDPORT_1), vid1)
+    print('Stream started at','http://{}:{}/stream.mjpg'.format(SERVER_CRAWLER, VIDPORT_1))
 
     vid_stream_1.serve_forever()
 
@@ -289,8 +323,8 @@ def video_2_start():
     vid2 = StreamProps
     vid2.set_Mode(StreamProps, 'cv2')
     vid2.set_Capture(StreamProps, capture_0)
-    vid_stream_2 = Streamer((SERVER, VIDPORT_2), vid2)
-    print('Stream started at','http://{}:{}/stream.mjpg'.format(SERVER, VIDPORT_2))
+    vid_stream_2 = Streamer((SERVER_CRAWLER, VIDPORT_2), vid2)
+    print('Stream started at','http://{}:{}/stream.mjpg'.format(SERVER_CRAWLER, VIDPORT_2))
 
     vid_stream_2.serve_forever()
 
@@ -298,8 +332,8 @@ def video_3_start():
     vid3 = StreamProps
     vid3.set_Mode(StreamProps, 'cv2')
     vid3.set_Capture(StreamProps, capture_1)
-    vid_stream_3 = Streamer((SERVER, VIDPORT_3), vid3)
-    print('Stream started at','http://{}:{}/stream.mjpg'.format(SERVER, VIDPORT_3))
+    vid_stream_3 = Streamer((SERVER_CRAWLER, VIDPORT_3), vid3)
+    print('Stream started at','http://{}:{}/stream.mjpg'.format(SERVER_CRAWLER, VIDPORT_3))
 
     vid_stream_3.serve_forever()
 
