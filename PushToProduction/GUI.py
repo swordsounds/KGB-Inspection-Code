@@ -15,13 +15,12 @@ CONTROL_BOX_PORT = 10000
 server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
 
-data: dict[str] = {'DIRECTION' : ''}
-
 def server_listener_start():
+    global data
     server.bind((SERVER_CONTROL_BOX, CONTROL_BOX_PORT))
+    data: dict[str] = {'DIRECTION' : ''}
     try:
         while True:
-            global data
             data_from_crawler = server.recvfrom(2048)
             data_from_crawler = data_from_crawler[0]
             data = pickle.loads(data_from_crawler)
