@@ -21,6 +21,10 @@ CMDPORT = 8000 # port for crawler commands
 
 FOCUSER = Focuser(1)
 
+FOCUSER.set(Focuser.OPT_FOCUS, 16000)
+FOCUSER.set(Focuser.OPT_ZOOM, 3000)
+FOCUSER.set(Focuser.OPT_MOTOR_Y, 0)
+
 info = {
     'TETH': '', 
     'CRAWL': '',
@@ -39,6 +43,13 @@ capture_0.set(cv2.CAP_PROP_FRAME_HEIGHT,240)
 capture_0.set(cv2.CAP_PROP_EXPOSURE, -18) 
 capture_0.set(cv2.CAP_PROP_BUFFERSIZE,4)
 capture_0.set(cv2.CAP_PROP_FPS,30)
+
+capture_1 = cv2.VideoCapture(2)
+capture_1.set(cv2.CAP_PROP_FRAME_WIDTH,320)
+capture_1.set(cv2.CAP_PROP_FRAME_HEIGHT,240)
+capture_1.set(cv2.CAP_PROP_EXPOSURE, -18) 
+capture_1.set(cv2.CAP_PROP_BUFFERSIZE,4)
+capture_1.set(cv2.CAP_PROP_FPS,30)
 
 class Streamer(socketserver.ThreadingMixIn, server.HTTPServer):
     allow_reuse_address = True
@@ -61,7 +72,7 @@ class StreamProps(server.BaseHTTPRequestHandler):
                 try:
                     while True:
                         ret,img = self.capture.read()
-                        frame = cv2.imencode('.JPEG', img,[cv2.IMWRITE_JPEG_QUALITY,90])[1].tobytes()
+                        frame = cv2.imencode('.JPEG', img,[cv2.IMWRITE_JPEG_QUALITY,75])[1].tobytes()
                         self.wfile.write(b'--FRAME\r\n')
                         self.send_header('Content-Type', 'image/jpeg')
                         self.send_header('Content-Length', len(frame))
@@ -126,13 +137,13 @@ def server_listener_start():
 
 
                 if info['CRAWL'] == 'FORW':
-                    ROBOT.forward(speed=0.50)
+                    ROBOT.forward(speed=0.75)
                 if info['CRAWL'] == 'RIGHT':
-                    ROBOT.right(speed=0.50) 
+                    ROBOT.right(speed=0.75) 
                 if info['CRAWL'] == 'BACK':
-                    ROBOT.backward(speed=0.50)
+                    ROBOT.backward(speed=0.75)
                 if info['CRAWL'] == 'LEFT':
-                    ROBOT.left(speed=0.50)
+                    ROBOT.left(speed=0.75)
                 if info['CRAWL'] == '':
                     ROBOT.stop()
 
@@ -188,11 +199,11 @@ def server_listener_start():
                 if info['PTZ_MOVEMENT'] == 'UP':
                     pass
                 if info['PTZ_MOVEMENT'] == 'RIGHT':
-                    pass
+                    FOCUSER.set(Focuser.OPT_MOTOR_Y, FOCUSER.get(Focuser.OPT_MOTOR_Y) + 5)
                 if info['PTZ_MOVEMENT'] == 'DOWN':
                     pass
                 if info['PTZ_MOVEMENT'] == 'LEFT':
-                    pass
+                    FOCUSER.set(Focuser.OPT_MOTOR_Y, FOCUSER.get(Focuser.OPT_MOTOR_Y) - 5)
 
 
 
@@ -237,7 +248,7 @@ def video_1_start():
     ptz_cam.preview_configuration.main.size=(1280,720) #full screen : 3280 2464, 1920x1080 for 1, 2464x1736 for 0
     ptz_cam.preview_configuration.main.format = "RGB888" #8 bits
     ptz_cam.preview_configuration.raw.format = 'SRGGB8'
-    ptz_cam.set_controls({"FrameDurationLimits": (10000, 10000)})
+    ptz_cam.set_controls({"FrameDurationLimits": (40000, 40000)})
     ptz_cam.start()
 
     vid1 = StreamProps
@@ -257,16 +268,27 @@ def video_2_start():
 
     vid_stream_2.serve_forever()
 
+def video_3_start():
+    vid3 = StreamProps
+    vid3.set_Mode(StreamProps, 'cv2')
+    vid3.set_Capture(StreamProps, capture_1)
+    vid_stream_3 = Streamer((SERVER, VIDPORT_3), vid3)
+    print('Stream started at','http://{}:{}/stream.mjpg'.format(SERVER, VIDPORT_3))
+
+    vid_stream_3.serve_forever()
+
 if __name__ == '__main__':
     try:
         ser = Process(target=server_listener_start)
         vid_0_str = Process(target=video_0_start)
         vid_1_str = Process(target=video_1_start)
         vid_2_str = Process(target=video_2_start)
+        vid_3_str = Process(target=video_3_start)
         ser.start()
         vid_0_str.start()
         vid_1_str.start()
         vid_2_str.start()
+        vid_3_str.start()
         
 
     except Exception as e:
