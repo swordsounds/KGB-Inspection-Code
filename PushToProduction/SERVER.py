@@ -230,7 +230,6 @@ def server_listener_start():
                     to_control_box = {'ZOOM': FOCUSER.get(Focuser.OPT_ZOOM)} 
                     info_as_bytes = pickle.dumps(to_control_box)
                     server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CTRLBXPORT_1))
-
                 if info['PTZ_ZOOM'] == '-':
                     FOCUSER.set(Focuser.OPT_ZOOM,FOCUSER.get(Focuser.OPT_ZOOM) -1000)
                     to_control_box = {'ZOOM': FOCUSER.get(Focuser.OPT_ZOOM)} 
