@@ -15,7 +15,7 @@ CTRLBXPORT_1 = 11000
 server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
 
-def server_listener_start(info_to_control):
+def server_listener_start(info_to_control, server):
     server.bind((SERVER_CONTROL_BOX, CTRLBXPORT_1))
     temp = {}
     try:
@@ -377,7 +377,7 @@ class App(customtkinter.CTk):
 
 if __name__ == "__main__":
     info_to_control = multiprocessing.Manager().Value('i', {'FOCUS': 0, 'ZOOM': 0})
-    t = multiprocessing.Process(target=server_listener_start, args=(info_to_control,))
+    t = multiprocessing.Process(target=server_listener_start, args=(info_to_control, server,))
     app = App()
     t.start()
     app.mainloop()
