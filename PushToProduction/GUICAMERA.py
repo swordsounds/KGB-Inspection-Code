@@ -34,7 +34,7 @@ class VideoCaptureDevice:
     
 
     def __init__(self, video_link):
-        self.vid = cv2.VideoCapture(video_link) #change ip in prod 192.168.0.19
+        self.vid = cv2.VideoCapture(video_link) 
         self.rec = None
 
     def get_frame(self) -> tuple[bool, list[int]]:
@@ -45,9 +45,9 @@ class VideoCaptureDevice:
         return (ret, cv2.cvtColor(resized, cv2.COLOR_BGR2RGB))
     
     def get_rec(self) -> object:
-        unique_id = str(uuid.uuid4()).split('-')[0] #test code TEST THIS
+        unique_id = str(uuid.uuid4()).split('-')[0]
         file_name = f"{unique_id}.avi"
-        fourcc = cv2.VideoWriter_fourcc(*'FMP4')#*'FMP4'
+        fourcc = cv2.VideoWriter_fourcc(*'FMP4')
         fps = 10.0
         res = (1280, 720)
         self.rec = cv2.VideoWriter(file_name, fourcc, fps, res)
@@ -56,7 +56,7 @@ class VideoCaptureDevice:
     def get_pic(self) -> None:
         ret, frame = self.vid.read()
         if ret:
-            unique_id = str(uuid.uuid4()).split('-')[0] #test code TEST THIS
+            unique_id = str(uuid.uuid4()).split('-')[0] 
             cv2.imwrite(f"{unique_id}.png", frame)
 
     def __del__(self) -> None:
@@ -75,6 +75,7 @@ class CameraButtonGroup(customtkinter.CTkFrame):
         self.label.grid(row=0, column=0, pady=20)
 
         # 8x8 grid
+
         self.grid_rowconfigure(tuple(range(9)), weight=1)
         self.grid_columnconfigure(tuple(range(9)), weight=1)
         
@@ -361,7 +362,7 @@ class App(customtkinter.CTk):
         self.vid.get_pic()
 
     def max_window(self):
-        self.geometry("{}x{}-{}+0".format(1920, 1080, 1928))
+        self.geometry("{}x{}-{}+0".format(1920, 1080, 1928)) # TODO: this needs to be fixed, as windows are off screen
         
     def mini_window(self):
         self.geometry("{}x{}-{}+0".format(300, 300, 1925))
