@@ -21,7 +21,6 @@ def controller(info):
     time.sleep(2)
 
     done = False
-    crawl_stop_to_back = 1
 
     while not done:
     
@@ -29,16 +28,16 @@ def controller(info):
                 if event.type == pygame.QUIT:
                     done = True
 
-                if event.type == pygame.JOYBUTTONDOWN:
-                    print("Joystick button pressed.")
+                # if event.type == pygame.JOYBUTTONDOWN:
+                    # print("Joystick button pressed.")
                     # print(joysticks[1])
                     # ROBOT.forward(speed=1)
                     # send_msg()
 
                 if event.type == pygame.JOYBUTTONUP:
-                    print("Joystick button released.")
-                    # ROBOT.stop()
-                    # send_msg()
+                    info['CRAWL'] = 'STOP'
+                    x_as_bytes = pickle.dumps(info)
+                    server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
                 if event.type == pygame.JOYDEVICEADDED:
                     joy = pygame.joystick.Joystick(event.device_index)
@@ -80,20 +79,13 @@ def controller(info):
                     x_as_bytes = pickle.dumps(info)
                     server.sendto((x_as_bytes), (SERVER, CMDPORT))
                 
-                # TODO: FIX THIS
                 elif y_axis_value_left == 1:
                     info['PTZ_MOVEMENT'] = ''
-                    info['CRAWL'] = 'STOP'
-
-                    if crawl_stop_to_back < 1:
-                        time.sleep(0.5)
-                        info['CRAWL'] = 'BACK'
-            
-                    crawl_stop_to_back = crawl_stop_to_back * -1
+                    info['CRAWL'] = 'BACK'
                     x_as_bytes = pickle.dumps(info)
                     server.sendto((x_as_bytes), (SERVER, CMDPORT))
-                    print(info)
                     
+
 
                 if x_axis_value_right == 1:
                     info['CRAWL'] = 'STOP'
@@ -134,10 +126,6 @@ def controller(info):
                 #     hat = joystick.get_hat(i)
                 #     print(f"Hat {i} value: {str(hat)}")
 
-# server stuff
-def send_msg(): 
-        x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
 if __name__ == "__main__":
     print("Server started...")

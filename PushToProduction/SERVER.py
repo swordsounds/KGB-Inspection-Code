@@ -10,8 +10,8 @@ from Focuser import Focuser # type: ignore
 from Autofocus import AutoFocus # type: ignore
 
 SERVER_CRAWLER = '192.168.0.19' # Enter  CRAWLER address 
-SERVER_CONTROL_BOX = '192.168.0.23' # Enter CONTROL BOX address
-# SERVER_CONTROL_BOX = '192.168.0.26' # Enter CONTROL BOX address
+# SERVER_CONTROL_BOX = '192.168.0.23' # Enter CONTROL BOX address
+SERVER_CONTROL_BOX = '192.168.0.26' # Enter CONTROL BOX address
 
 VIDPORT_0 = 9000 # video port
 VIDPORT_1 = 9100 # video port
@@ -27,9 +27,9 @@ FOCUSER = Focuser(1)
 FOCUSER.set(Focuser.OPT_FOCUS, 16000)
 FOCUSER.set(Focuser.OPT_ZOOM, 3000)
 FOCUSER.set(Focuser.OPT_MOTOR_X, 0)
+FOCUSER.set(Focuser.OPT_MOTOR_Y, 0)
 
 info = {
-    'TETH': '', 
     'CRAWL': '',
     'GRIP': '', 
     'ARM': '',
@@ -121,7 +121,7 @@ def server_listener_start():
         server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
         server.bind((SERVER_CRAWLER, CMDPORT))
         
-        fieldnames = ['TETH', 'CRAWL','GRIP', 'ARM', #test code REMOVE    
+        fieldnames = ['CRAWL','GRIP', 'ARM', #test code REMOVE    
                       'ARDU_CAMERA', 'IR_CUT', #test code REMOVE    
                       'PTZ_ZOOM', 'PTZ_FOCUS', 'PTZ_MOVEMENT'] #test code REMOVE    
         try:
@@ -189,14 +189,6 @@ def server_listener_start():
 
 
 
-                if info['TETH'] == 'EXT':
-                    pass
-                if info['TETH'] == 'RETR':
-                    pass
-                if info['TETH'] == 'STOP':
-                    pass
-
-
 
                 if info['PTZ_FOCUS'] == 'AUTO':
                     autoFocus = AutoFocus(FOCUSER, 'http://192.168.0.19:9100/stream.mjpg')
@@ -239,11 +231,11 @@ def server_listener_start():
 
 
                 if info['PTZ_MOVEMENT'] == 'UP':
-                    pass
+                    FOCUSER.set(Focuser.OPT_MOTOR_Y, FOCUSER.get(Focuser.OPT_MOTOR_Y) + 1)
                 if info['PTZ_MOVEMENT'] == 'RIGHT':
                     FOCUSER.set(Focuser.OPT_MOTOR_X, FOCUSER.get(Focuser.OPT_MOTOR_X) + 1)
                 if info['PTZ_MOVEMENT'] == 'DOWN':
-                    pass
+                    FOCUSER.set(Focuser.OPT_MOTOR_Y, FOCUSER.get(Focuser.OPT_MOTOR_Y) - 1)
                 if info['PTZ_MOVEMENT'] == 'LEFT':
                     FOCUSER.set(Focuser.OPT_MOTOR_X, FOCUSER.get(Focuser.OPT_MOTOR_X) - 1)
 

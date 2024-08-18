@@ -8,17 +8,21 @@ import socket, pickle
 
 from gpiozero import Robot, Motor # type: ignore
 
+# TETH_MTR = Motor(6, 13)
+
 SERVER_CRAWLER = '192.168.0.19' 
 CMDPORT = 8000 
 
-SERVER_CONTROL_BOX = '192.168.0.23' #change ip in prod
-# SERVER_CONTROL_BOX = '192.168.0.26' # Enter CONTROL BOX address
+# SERVER_CONTROL_BOX = '192.168.0.23' #change ip in prod
+SERVER_CONTROL_BOX = '192.168.0.26' # Enter CONTROL BOX address
 CTRLBXPORT_0 = 10000
 
 server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
 
-def server_listener_start(info_to_control, server):
+def server_listener_start(info_to_control):
+    server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
     server.bind((SERVER_CONTROL_BOX, CTRLBXPORT_0))
     try:
         while True:
@@ -67,11 +71,6 @@ class VideoCaptureDevice:
                 print(e)
 
 class TetherButtonGroup(customtkinter.CTkFrame):
-
-    #TODO: Clean this up
-
-    TETH_MTR = Robot(right=Motor(int, int), left=Motor(int, int))
-
     def __init__(self, master):
         super().__init__(master)
 
@@ -95,18 +94,18 @@ class TetherButtonGroup(customtkinter.CTkFrame):
 
     # TODO: Make this a ROBOT
     def tether_extend(self):  
-        self.TETH_MTR.forward()
+        TETH_MTR.forward()
         
     def tether_stop(self):
-       self.TETH_MTR.stop()
+        TETH_MTR.stop()
     
     def tether_retract(self):
-        self.TETH_MTR.backward()
+        TETH_MTR.backward()
 
 class MovementButtonGroup(customtkinter.CTkFrame):
 
     meters = 0
-
+    current_distance = 0
     def __init__(self, master):
         super().__init__(master)
 
@@ -178,13 +177,15 @@ class MovementButtonGroup(customtkinter.CTkFrame):
 
     def position_change(self):
         if info_to_control.value['DIRECTION'] == 'FORW':
+            # TETH_MTR.forward()
             self.meters += 0.01
         elif info_to_control.value['DIRECTION'] == 'BACK':
+            # TETH_MTR.backward()
             self.meters -= 0.01
+
+        # TETH_MTR.stop()
         self.distance.delete("0.0", "end")
         self.distance.insert("0.0", f'{round(self.meters, 2)} m')
-
-        
         self.after(500, self.position_change)
 
 class GripperButtonGroup(customtkinter.CTkFrame):
@@ -385,14 +386,14 @@ class App(customtkinter.CTk):
         self.destroy()
 
     def info_reset(self):
-        info_to_crawler = {'TETH': '', 'GRIP': '', 'ARM': ''}
+        info_to_crawler = {'GRIP': '', 'ARM': ''}
         x_as_bytes = pickle.dumps(info_to_crawler)
         server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
         self.after(50, self.info_reset)
 
 if __name__ == "__main__":
     info_to_control = multiprocessing.Manager().Value('i', {'DIRECTION': ''})
-    t = multiprocessing.Process(target=server_listener_start, args=(info_to_control, server,))
+    t = multiprocessing.Process(target=server_listener_start, args=(info_to_control,))
     app = App()
     t.start()
     app.mainloop()
