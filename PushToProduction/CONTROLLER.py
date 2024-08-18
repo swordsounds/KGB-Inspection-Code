@@ -14,12 +14,15 @@ info = {
         }
 
 
-def controller():
+def controller(info):
+    global crawl_stop_to_back
     joysticks = {}
 
     time.sleep(2)
 
     done = False
+    crawl_stop_to_back = 1
+
     while not done:
     
             for event in pygame.event.get():
@@ -28,13 +31,14 @@ def controller():
 
                 if event.type == pygame.JOYBUTTONDOWN:
                     print("Joystick button pressed.")
+                    # print(joysticks[1])
                     # ROBOT.forward(speed=1)
-                    send_msg()
+                    # send_msg()
 
                 if event.type == pygame.JOYBUTTONUP:
                     print("Joystick button released.")
                     # ROBOT.stop()
-                    send_msg()
+                    # send_msg()
 
                 if event.type == pygame.JOYDEVICEADDED:
                     joy = pygame.joystick.Joystick(event.device_index)
@@ -45,9 +49,13 @@ def controller():
                     del joysticks[event.instance_id]
                     print(f"Joystick disconnected")
 
-             
-            for joystick in joysticks.values():
+            # x_axis_value_left = round(joystick.get_axis(0), 1)
+            # y_axis_value_left = round(joystick.get_axis(1), 1)
 
+            # x_axis_value_right = round(joystick.get_axis(3), 1)
+            # y_axis_value_right = round(joystick.get_axis(4), 1)
+
+            for joystick in joysticks.values():
                 x_axis_value_left = round(joystick.get_axis(0), 1)
                 y_axis_value_left = round(joystick.get_axis(1), 1)
 
@@ -72,13 +80,20 @@ def controller():
                     x_as_bytes = pickle.dumps(info)
                     server.sendto((x_as_bytes), (SERVER, CMDPORT))
                 
+                # TODO: FIX THIS
                 elif y_axis_value_left == 1:
                     info['PTZ_MOVEMENT'] = ''
-                    info['CRAWL'] = 'BACK'
+                    info['CRAWL'] = 'STOP'
+
+                    if crawl_stop_to_back < 1:
+                        time.sleep(0.5)
+                        info['CRAWL'] = 'BACK'
+            
+                    crawl_stop_to_back = crawl_stop_to_back * -1
                     x_as_bytes = pickle.dumps(info)
                     server.sendto((x_as_bytes), (SERVER, CMDPORT))
-                
-
+                    print(info)
+                    
 
                 if x_axis_value_right == 1:
                     info['CRAWL'] = 'STOP'
@@ -103,7 +118,6 @@ def controller():
                     info['PTZ_MOVEMENT'] = 'DOWN'
                     x_as_bytes = pickle.dumps(info)
                     server.sendto((x_as_bytes), (SERVER, CMDPORT))
-                
 
                 # for buttons in range(0, 4):
                     
@@ -127,5 +141,5 @@ def send_msg():
 
 if __name__ == "__main__":
     print("Server started...")
-    controller()
+    controller(info)
     pygame.quit()

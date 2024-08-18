@@ -1,8 +1,9 @@
-import tkinter
-root = tkinter.Tk()
+def Iterative (number):
+    run_x = number // 10
+    for i in range(run_x):
+        print(i)
 
-txt = "ON_2000"
 
-x = txt.split("_")
 
-print(x)
+if __name__ == '__main__':
+    Iterative(70)
