@@ -8,14 +8,16 @@ import socket, pickle
 SERVER_CRAWLER = '192.168.0.19' #change ip to static ip in prod
 CMDPORT = 8000 
 
-SERVER_CONTROL_BOX = '192.168.0.23' #change ip in prod
-# SERVER_CONTROL_BOX = '192.168.0.26' # Enter CONTROL BOX address
+# SERVER_CONTROL_BOX = '192.168.0.23' #change ip in prod
+SERVER_CONTROL_BOX = '192.168.0.26' # Enter CONTROL BOX address
 CTRLBXPORT_1 = 11000
 
 server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
 
-def server_listener_start(info_to_control, server):
+def server_listener_start(info_to_control):
+    server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
     server.bind((SERVER_CONTROL_BOX, CTRLBXPORT_1))
     temp = {}
     try:
@@ -377,7 +379,7 @@ class App(customtkinter.CTk):
 
 if __name__ == "__main__":
     info_to_control = multiprocessing.Manager().Value('i', {'FOCUS': 0, 'ZOOM': 0})
-    t = multiprocessing.Process(target=server_listener_start, args=(info_to_control, server,))
+    t = multiprocessing.Process(target=server_listener_start, args=(info_to_control,))
     app = App()
     t.start()
     app.mainloop()

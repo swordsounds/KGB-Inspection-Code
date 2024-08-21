@@ -9,31 +9,35 @@ SERVER = '192.168.0.19'
 CMDPORT = 8000 
 
 info = {
-        "CRAWL": ''
+        "CRAWL": '',
+        "PTZ_MOVEMENT": ''
         }
 
 
-def controller():
+def controller(info):
+    global crawl_stop_to_back
     joysticks = {}
 
     time.sleep(2)
 
     done = False
+
     while not done:
     
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     done = True
 
-                if event.type == pygame.JOYBUTTONDOWN:
-                    print("Joystick button pressed.")
+                # if event.type == pygame.JOYBUTTONDOWN:
+                    # print("Joystick button pressed.")
+                    # print(joysticks[1])
                     # ROBOT.forward(speed=1)
-                    send_msg()
+                    # send_msg()
 
                 if event.type == pygame.JOYBUTTONUP:
-                    print("Joystick button released.")
-                    # ROBOT.stop()
-                    send_msg()
+                    info['CRAWL'] = 'STOP'
+                    x_as_bytes = pickle.dumps(info)
+                    server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
                 if event.type == pygame.JOYDEVICEADDED:
                     joy = pygame.joystick.Joystick(event.device_index)
@@ -44,33 +48,69 @@ def controller():
                     del joysticks[event.instance_id]
                     print(f"Joystick disconnected")
 
-             
+            # x_axis_value_left = round(joystick.get_axis(0), 1)
+            # y_axis_value_left = round(joystick.get_axis(1), 1)
+
+            # x_axis_value_right = round(joystick.get_axis(3), 1)
+            # y_axis_value_right = round(joystick.get_axis(4), 1)
+
             for joystick in joysticks.values():
-                # axes = joystick.get_numaxes()
+                x_axis_value_left = round(joystick.get_axis(0), 1)
+                y_axis_value_left = round(joystick.get_axis(1), 1)
 
-                x_axis_value = round(joystick.get_axis(0), 1)
-                y_axis_value = round(joystick.get_axis(1), 1)
+                x_axis_value_right = round(joystick.get_axis(3), 1)
+                y_axis_value_right = round(joystick.get_axis(4), 1)
 
-                if x_axis_value == 1:
+                if x_axis_value_left == 1:
+                    info['PTZ_MOVEMENT'] = ''
                     info['CRAWL'] = 'RIGHT'
                     x_as_bytes = pickle.dumps(info)
                     server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
-                elif x_axis_value == -1:
+                elif x_axis_value_left == -1:
+                    info['PTZ_MOVEMENT'] = ''
                     info['CRAWL'] = 'LEFT'
                     x_as_bytes = pickle.dumps(info)
                     server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
-                elif y_axis_value == -1:
-                    info['CRAWL'] = 'UP'
+                elif y_axis_value_left == -1:
+                    info['PTZ_MOVEMENT'] = ''
+                    info['CRAWL'] = 'FORW'
                     x_as_bytes = pickle.dumps(info)
                     server.sendto((x_as_bytes), (SERVER, CMDPORT))
                 
-                elif y_axis_value == 1:
-                    info['CRAWL'] = 'DOWN'
+                elif y_axis_value_left == 1:
+                    info['PTZ_MOVEMENT'] = ''
+                    info['CRAWL'] = 'BACK'
                     x_as_bytes = pickle.dumps(info)
                     server.sendto((x_as_bytes), (SERVER, CMDPORT))
-               
+                    
+
+
+                if x_axis_value_right == 1:
+                    info['CRAWL'] = 'STOP'
+                    info['PTZ_MOVEMENT'] = 'RIGHT'
+                    x_as_bytes = pickle.dumps(info)
+                    server.sendto((x_as_bytes), (SERVER, CMDPORT))
+
+                elif x_axis_value_right == -1:
+                    info['CRAWL'] = 'STOP'
+                    info['PTZ_MOVEMENT'] = 'LEFT'
+                    x_as_bytes = pickle.dumps(info)
+                    server.sendto((x_as_bytes), (SERVER, CMDPORT))
+
+                elif y_axis_value_right == -1:
+                    info['CRAWL'] = 'STOP'
+                    info['PTZ_MOVEMENT'] = 'UP'
+                    x_as_bytes = pickle.dumps(info)
+                    server.sendto((x_as_bytes), (SERVER, CMDPORT))
+                
+                elif y_axis_value_right == 1:
+                    info['CRAWL'] = 'STOP'
+                    info['PTZ_MOVEMENT'] = 'DOWN'
+                    x_as_bytes = pickle.dumps(info)
+                    server.sendto((x_as_bytes), (SERVER, CMDPORT))
+
                 # for buttons in range(0, 4):
                     
                 #         button_mapping = {0: 'dpad_up',
@@ -86,12 +126,8 @@ def controller():
                 #     hat = joystick.get_hat(i)
                 #     print(f"Hat {i} value: {str(hat)}")
 
-# server stuff
-def send_msg(): 
-        x_as_bytes = pickle.dumps(info)
-        server.sendto((x_as_bytes), (SERVER, CMDPORT))
 
 if __name__ == "__main__":
     print("Server started...")
-    controller()
+    controller(info)
     pygame.quit()
