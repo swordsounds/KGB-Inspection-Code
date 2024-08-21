@@ -111,7 +111,7 @@ def server_listener_start():
         '''
         DEFINE ALL SERVOS, MOTORS, ETC IN ACCOCIATED PROCESS
 
-        Breaks whenever you dont. I have no idea why I'll just accept it.
+        As its a multiprocess
 
         '''
         

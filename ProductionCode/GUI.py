@@ -6,7 +6,7 @@ import uuid
 import multiprocessing
 import socket, pickle
 
-from gpiozero import Robot, Motor # type: ignore
+from gpiozero import Motor # type: ignore
 
 # TETH_MTR = Motor(6, 13)
 
@@ -71,6 +71,11 @@ class VideoCaptureDevice:
                 print(e)
 
 class TetherButtonGroup(customtkinter.CTkFrame):
+
+    # TODO: Might need to switch the numbers around
+
+    TETH_MTR = Motor(13, 6)
+
     def __init__(self, master):
         super().__init__(master)
 
@@ -92,15 +97,15 @@ class TetherButtonGroup(customtkinter.CTkFrame):
         self.button = customtkinter.CTkButton(master=self, command=self.tether_retract, text="Retract Tether")
         self.button.grid(row=1, column=2, padx=20, pady=20)
 
-    # TODO: Make this a ROBOT
+    # TODO: Control box side, GPIO pin, make this work
     def tether_extend(self):  
-        TETH_MTR.forward()
+        self.TETH_MTR.forward()
         
     def tether_stop(self):
-        TETH_MTR.stop()
+        self.TETH_MTR.stop()
     
     def tether_retract(self):
-        TETH_MTR.backward()
+        self.TETH_MTR.backward()
 
 class MovementButtonGroup(customtkinter.CTkFrame):
 
