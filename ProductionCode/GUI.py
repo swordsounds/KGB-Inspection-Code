@@ -8,7 +8,10 @@ import socket, pickle
 
 from gpiozero import Motor # type: ignore
 
-# TETH_MTR = Motor(6, 13)
+
+# TODO: Might need to switch the numbers around
+
+TETH_MTR = Motor(13, 6)
 
 SERVER_CRAWLER = '192.168.0.19' 
 CMDPORT = 8000 
@@ -72,10 +75,6 @@ class VideoCaptureDevice:
 
 class TetherButtonGroup(customtkinter.CTkFrame):
 
-    # TODO: Might need to switch the numbers around
-
-    TETH_MTR = Motor(13, 6)
-
     def __init__(self, master):
         super().__init__(master)
 
@@ -99,13 +98,13 @@ class TetherButtonGroup(customtkinter.CTkFrame):
 
     # TODO: Control box side, GPIO pin, make this work
     def tether_extend(self):  
-        self.TETH_MTR.forward()
+        TETH_MTR.forward()
         
     def tether_stop(self):
-        self.TETH_MTR.stop()
+        TETH_MTR.stop()
     
     def tether_retract(self):
-        self.TETH_MTR.backward()
+        TETH_MTR.backward()
 
 class MovementButtonGroup(customtkinter.CTkFrame):
 
@@ -182,16 +181,16 @@ class MovementButtonGroup(customtkinter.CTkFrame):
 
     def position_change(self):
         if info_to_control.value['DIRECTION'] == 'FORW':
-            # TETH_MTR.forward()
+            TETH_MTR.forward()
             self.meters += 0.01
         elif info_to_control.value['DIRECTION'] == 'BACK':
-            # TETH_MTR.backward()
+            TETH_MTR.backward()
             self.meters -= 0.01
 
-        # TETH_MTR.stop()
+        TETH_MTR.stop()
         self.distance.delete("0.0", "end")
         self.distance.insert("0.0", f'{round(self.meters, 2)} m')
-        self.after(500, self.position_change)
+        self.after(250, self.position_change)
 
 class GripperButtonGroup(customtkinter.CTkFrame):
     def __init__(self, master):
