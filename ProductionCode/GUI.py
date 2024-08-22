@@ -382,10 +382,10 @@ class App(customtkinter.CTk):
         self.after(1000, self.time_start)
 
     def max_window(self):
-        self.geometry("{}x{}-{}+0".format(1920, 1080, 1928))
+        self.geometry("{}x{}".format(1920, 1080))
 
     def mini_window(self):
-        self.geometry("{}x{}-{}+0".format(300, 300, 1925))
+        self.geometry("{}x{}".format(300, 300))
     
     def close_window(self):
         self.destroy()
