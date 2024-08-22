@@ -75,7 +75,7 @@ class StreamProps(server.BaseHTTPRequestHandler):
                 try:
                     while True:
                         ret,img = self.capture.read()
-                        frame = cv2.imencode('.JPEG', img,[cv2.IMWRITE_JPEG_QUALITY,70])[1].tobytes()
+                        frame = cv2.imencode('.JPEG', img,[cv2.IMWRITE_JPEG_QUALITY, 70])[1].tobytes()
                         self.wfile.write(b'--FRAME\r\n')
                         self.send_header('Content-Type', 'image/jpeg')
                         self.send_header('Content-Length', len(frame))
@@ -91,7 +91,7 @@ class StreamProps(server.BaseHTTPRequestHandler):
                 try:
                     while True:
                         img = self.capture.capture_array()
-                        frame = cv2.imencode('.JPEG', img, [cv2.IMWRITE_JPEG_QUALITY, 85])[1].tobytes()
+                        frame = cv2.imencode('.JPEG', img, [cv2.IMWRITE_JPEG_QUALITY, 80])[1].tobytes()
                         self.wfile.write(b'--FRAME\r\n')
                         self.send_header('Content-Type', 'image/jpeg')
                         self.send_header('Content-Length', len(frame))

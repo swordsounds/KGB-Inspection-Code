@@ -1,3 +1,5 @@
 - Code refinery and optimizations.
 
 - Move tether commands to the control Pi 5
+
+- Make a config file for the IPs and command ports.
