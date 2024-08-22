@@ -9,6 +9,6 @@ Please follow coding patterns for better documentation:
 
 I will provide further documentation in a google doc/juptyer notebook when it's ready.
 
-# Usage if Changes Branch.
+# Usage of Changes Branch.
 
 This is for any changes to be tested then to be pushed into the PushToProd branch.
