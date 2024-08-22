@@ -186,7 +186,7 @@ class MovementButtonGroup(customtkinter.CTkFrame):
         # TETH_MTR.stop()
         self.distance.delete("0.0", "end")
         self.distance.insert("0.0", f'{round(self.meters, 2)} m')
-        self.after(500, self.position_change)
+        self.after(250, self.position_change)
 
 class GripperButtonGroup(customtkinter.CTkFrame):
     def __init__(self, master):

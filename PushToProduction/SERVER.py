@@ -91,7 +91,7 @@ class StreamProps(server.BaseHTTPRequestHandler):
                 try:
                     while True:
                         img = self.capture.capture_array()
-                        frame = cv2.imencode('.JPEG', img, [cv2.IMWRITE_JPEG_QUALITY, 85])[1].tobytes()
+                        frame = cv2.imencode('.JPEG', img, [cv2.IMWRITE_JPEG_QUALITY, 80])[1].tobytes()
                         self.wfile.write(b'--FRAME\r\n')
                         self.send_header('Content-Type', 'image/jpeg')
                         self.send_header('Content-Length', len(frame))
@@ -145,22 +145,22 @@ def server_listener_start():
                     to_control_box = {'DIRECTION': 'FORW'} 
                     info_as_bytes = pickle.dumps(to_control_box)
                     server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CTRLBXPORT_0))
-                    ROBOT.forward(speed=0.5)
+                    ROBOT.forward(speed=1.0)
                 if info['CRAWL'] == 'RIGHT':
                     to_control_box = {'DIRECTION': 'RIGHT'} 
                     info_as_bytes = pickle.dumps(to_control_box)
                     server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CTRLBXPORT_0))
-                    ROBOT.right(speed=0.5) 
+                    ROBOT.right(speed=1.0) 
                 if info['CRAWL'] == 'BACK':
                     to_control_box = {'DIRECTION': 'BACK'} 
                     info_as_bytes = pickle.dumps(to_control_box)
                     server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CTRLBXPORT_0))
-                    ROBOT.backward(speed=0.5)
+                    ROBOT.backward(speed=1.0)
                 if info['CRAWL'] == 'LEFT':
                     to_control_box = {'DIRECTION': 'LEFT'} 
                     info_as_bytes = pickle.dumps(to_control_box)
                     server.sendto((info_as_bytes), (SERVER_CONTROL_BOX, CTRLBXPORT_0))
-                    ROBOT.left(speed=0.5)
+                    ROBOT.left(speed=1.0)
                 if info['CRAWL'] == 'STOP':
                     to_control_box = {'DIRECTION': 'STOP'} 
                     info_as_bytes = pickle.dumps(to_control_box)
