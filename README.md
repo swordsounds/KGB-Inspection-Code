@@ -9,10 +9,16 @@ Please follow coding patterns for better documentation:
 
 I will provide further documentation in a google doc/juptyer notebook when it's ready.
 
+
 # Usage of Main branch.
 
 This is for production.
 
+# Usage of Push To Production
+
+Serve this as a second-to-last on the commit hierarchy. When all bugs are ironed out commit this to the main.
+
 # Usage of Changes Branch.
 
 This is for any changes to be tested then to be pushed into the PushToProd branch.
+
