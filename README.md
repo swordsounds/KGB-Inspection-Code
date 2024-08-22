@@ -9,6 +9,10 @@ Please follow coding patterns for better documentation:
 
 I will provide further documentation in a google doc/juptyer notebook when it's ready.
 
+# Usage of Main branch.
+
+This is for production.
+
 # Usage of Changes Branch.
 
 This is for any changes to be tested then to be pushed into the PushToProd branch.
