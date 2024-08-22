@@ -1,12 +1,3 @@
-# KGB-Inspection-Code
-Code repository holding all KGB Inspection Systems code for various operatable and developing ROV's.
+# Push To Production
 
-Please follow coding patterns for better documentation:
-- Type Annotations
-- Keep functions small 
-- No more than 3 levels of nested if statements
-- Use indentations to group respective statements
-
-Further Documentation in a google doc/juptyer notebook will be provided when ready.
-
-- Put Distance in GUI 
+Serve this as a second-to-last on the commit hierarchy. When all bugs are ironed out commit this to the main.
