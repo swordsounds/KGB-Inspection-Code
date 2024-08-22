@@ -9,4 +9,6 @@ Please follow coding patterns for better documentation:
 
 Further Documentation in a google doc/juptyer notebook will be provided when ready.
 
-- Put Distance in GUI 
+# Usage of Main branch.
+
+This is for production.
