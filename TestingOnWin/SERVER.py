@@ -10,8 +10,8 @@ from Focuser import Focuser # type: ignore
 from Autofocus import AutoFocus # type: ignore
 
 SERVER_CRAWLER = '192.168.0.19' # Enter  CRAWLER address 
-SERVER_CONTROL_BOX = '192.168.0.23' # Enter CONTROL BOX address
-# SERVER_CONTROL_BOX = '192.168.0.10' # Enter CONTROL BOX address
+# SERVER_CONTROL_BOX = '192.168.0.23' # Enter CONTROL BOX address
+SERVER_CONTROL_BOX = '192.168.0.10' # Enter CONTROL BOX address
 # SERVER_CONTROL_BOX = '192.168.0.26' # Enter CONTROL BOX address
 
 VIDPORT_0 = 9000 # video port
