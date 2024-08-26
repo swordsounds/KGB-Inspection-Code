@@ -8,9 +8,7 @@ import socket, pickle
 SERVER_CRAWLER = '192.168.0.19' #change ip to static ip in prod
 CMDPORT = 8000 
 
-SERVER_CONTROL_BOX = '192.168.0.23' #change ip in prod
-# SERVER_CONTROL_BOX = '192.168.0.10' # Enter CONTROL BOX address
-# SERVER_CONTROL_BOX = '192.168.0.26' # Enter CONTROL BOX address
+SERVER_CONTROL_BOX = '192.168.0.26' # Enter CONTROL BOX address
 CTRLBXPORT_1 = 11000
 
 server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
