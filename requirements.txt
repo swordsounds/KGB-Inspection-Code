@@ -12,3 +12,4 @@ datetime
 logging
 multiprocessing
 subprocess
+numpy==1.26.4
