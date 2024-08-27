@@ -1,4 +1,4 @@
-import cv2, socket, pickle, csv, os # type: ignore
+import time, cv2, socket, pickle, csv, os # type: ignore
 from gpiozero import Robot, Motor # type: ignore
 from multiprocessing import Process
 from libcamera import controls # type: ignore
@@ -9,17 +9,7 @@ import logging
 from Focuser import Focuser # type: ignore
 from Autofocus import AutoFocus # type: ignore
 
-SERVER_CRAWLER = '192.168.0.19' # Enter  CRAWLER address 
-SERVER_CONTROL_BOX = '192.168.0.26' # Enter CONTROL BOX address
-
-VIDPORT_0 = 9000 # video port
-VIDPORT_1 = 9100 # video port
-VIDPORT_2 = 9200 # video port
-VIDPORT_3 = 9300 # video port
-CMDPORT = 8000 # port for crawler commands
-
-CTRLBXPORT_0 = 10000 # port for control box positioning
-CTRLBXPORT_1 = 11000 # port for control box guicamera sliders
+from config import *
 
 FOCUSER = Focuser(1)
 
@@ -38,20 +28,6 @@ info = {
     'PTZ_FOCUS': '', 
     'PTZ_MOVEMENT': ''
 }
-
-capture_0 = cv2.VideoCapture(0)
-capture_0.set(cv2.CAP_PROP_FRAME_WIDTH,320)
-capture_0.set(cv2.CAP_PROP_FRAME_HEIGHT,240)
-capture_0.set(cv2.CAP_PROP_EXPOSURE, -18) 
-capture_0.set(cv2.CAP_PROP_BUFFERSIZE,4)
-capture_0.set(cv2.CAP_PROP_FPS,30)
-
-capture_1 = cv2.VideoCapture(2)
-capture_1.set(cv2.CAP_PROP_FRAME_WIDTH,320)
-capture_1.set(cv2.CAP_PROP_FRAME_HEIGHT,240)
-capture_1.set(cv2.CAP_PROP_EXPOSURE, -18) 
-capture_1.set(cv2.CAP_PROP_BUFFERSIZE,4)
-capture_1.set(cv2.CAP_PROP_FPS,30)
 
 class Streamer(socketserver.ThreadingMixIn, server.HTTPServer):
     allow_reuse_address = True
@@ -129,16 +105,21 @@ def server_listener_start():
                 data_from_control_box = server.recvfrom(2048)
                 data_from_control_box = data_from_control_box[0]
                 data = pickle.loads(data_from_control_box)
-            
+
+                temp =info['CRAWL']
+
                 for key, value in data.items():
                     info[key] = value           
-            
+
                 with open('data.csv', 'w') as csv_file: #test code REMOVE
                     csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)#test code REMOVE
                     csv_writer.writeheader()#test code REMOVE
                     csv_writer.writerow(info)#test code REMOVE        
 
 
+                if temp != info['CRAWL']:
+                    ROBOT.stop()
+                    time.sleep(0.15)
 
                 if info['CRAWL'] == 'FORW':
                     to_control_box = {'DIRECTION': 'FORW'} 
@@ -311,6 +292,20 @@ def video_3_start():
     vid_stream_3.serve_forever()
 
 if __name__ == '__main__':
+    capture_0 = cv2.VideoCapture(0)
+    capture_0.set(cv2.CAP_PROP_FRAME_WIDTH,320)
+    capture_0.set(cv2.CAP_PROP_FRAME_HEIGHT,240)
+    capture_0.set(cv2.CAP_PROP_EXPOSURE, -18) 
+    capture_0.set(cv2.CAP_PROP_BUFFERSIZE,4)
+    capture_0.set(cv2.CAP_PROP_FPS,30)
+
+    capture_1 = cv2.VideoCapture(2)
+    capture_1.set(cv2.CAP_PROP_FRAME_WIDTH,320)
+    capture_1.set(cv2.CAP_PROP_FRAME_HEIGHT,240)
+    capture_1.set(cv2.CAP_PROP_EXPOSURE, -18) 
+    capture_1.set(cv2.CAP_PROP_BUFFERSIZE,4)
+    capture_1.set(cv2.CAP_PROP_FPS,30)
+
     try:
         ser = Process(target=server_listener_start)
         vid_0_str = Process(target=video_0_start)

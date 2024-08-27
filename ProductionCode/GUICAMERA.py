@@ -5,11 +5,7 @@ import uuid
 import multiprocessing
 import socket, pickle
 
-SERVER_CRAWLER = '192.168.0.19' #change ip to static ip in prod
-CMDPORT = 8000 
-
-SERVER_CONTROL_BOX = '192.168.0.26' # Enter CONTROL BOX address
-CTRLBXPORT_1 = 11000
+from config import *
 
 server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
