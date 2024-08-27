@@ -94,7 +94,7 @@ class TetherButtonGroup(customtkinter.CTkFrame):
     def tether_extend(self):  
         global fwr
         TETH_MTR.forward()
-        fwr = self.after(25, self.tether_extend)
+        fwr = self.after(5, self.tether_extend)
         
     def tether_stop(self):
         TETH_MTR.stop()
@@ -107,7 +107,7 @@ class TetherButtonGroup(customtkinter.CTkFrame):
     def tether_retract(self):
         global bck
         TETH_MTR.backward()
-        bck = self.after(25, self.tether_retract)
+        bck = self.after(5, self.tether_retract)
 
 class MovementButtonGroup(customtkinter.CTkFrame):
 
@@ -184,15 +184,21 @@ class MovementButtonGroup(customtkinter.CTkFrame):
 
     def position_change(self):
         if info_to_control.value['DIRECTION'] == 'FORW': 
-            TetherButtonGroup.tether_extend(TetherButtonGroup)
-            self.meters += 0.01
-            TetherButtonGroup.tether_stop(TetherButtonGroup)
+            TETH_MTR.forward(speed=0.5)
+            # TetherButtonGroup.tether_extend(TetherButtonGroup)
+            self.meters += 0.0136
+            
 
         elif info_to_control.value['DIRECTION'] == 'BACK':
-            TetherButtonGroup.tether_retract(TetherButtonGroup)
-            self.meters -= 0.01
-            TetherButtonGroup.tether_stop(TetherButtonGroup)
-            
+            TETH_MTR.backward(speed=0.5)
+            # TetherButtonGroup.tether_retract(TetherButtonGroup)
+            self.meters -= 0.0136
+
+        else:
+            TETH_MTR.stop()
+            # TetherButtonGroup.tether_stop(TetherButtonGroup)
+           
+
         self.distance.delete("0.0", "end")
         self.distance.insert("0.0", f'{round(self.meters, 2)} m')
         self.after(250, self.position_change)

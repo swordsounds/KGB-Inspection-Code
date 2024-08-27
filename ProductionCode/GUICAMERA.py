@@ -239,8 +239,11 @@ class PTZButtonGroup(customtkinter.CTkFrame):
         server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
 
     def zoom_and_focus_change(self):
-        self.focus.set(int(info_to_control.value['FOCUS']))
-        self.zoom.set(int(info_to_control.value['ZOOM']))
+        try:
+            self.focus.set(int(info_to_control.value['FOCUS']))
+            self.zoom.set(int(info_to_control.value['ZOOM']))
+        except Exception as e:
+            print(e)
         self.after(3000, self.zoom_and_focus_change)
 
 class App(customtkinter.CTk):
