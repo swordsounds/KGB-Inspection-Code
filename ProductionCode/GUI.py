@@ -184,21 +184,22 @@ class MovementButtonGroup(customtkinter.CTkFrame):
 
     def position_change(self):
         if info_to_control.value['DIRECTION'] == 'FORW': 
-            TETH_MTR.forward(speed=0.5)
-            # TetherButtonGroup.tether_extend(TetherButtonGroup)
             self.meters += 0.0136
-            
+            if round(self.meters, 0) % 2 == 0:
+                TETH_MTR.forward()
+            else:
+                TETH_MTR.stop()
 
         elif info_to_control.value['DIRECTION'] == 'BACK':
-            TETH_MTR.backward(speed=0.5)
-            # TetherButtonGroup.tether_retract(TetherButtonGroup)
             self.meters -= 0.0136
+            if round(self.meters, 0) % 2 == 0:
+                TETH_MTR.backward()
+            else:
+                TETH_MTR.stop()
 
         else:
             TETH_MTR.stop()
-            # TetherButtonGroup.tether_stop(TetherButtonGroup)
            
-
         self.distance.delete("0.0", "end")
         self.distance.insert("0.0", f'{round(self.meters, 2)} m')
         self.after(250, self.position_change)
