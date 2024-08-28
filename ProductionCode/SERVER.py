@@ -11,13 +11,6 @@ from Autofocus import AutoFocus # type: ignore
 
 from config import *
 
-FOCUSER = Focuser(1)
-
-FOCUSER.set(Focuser.OPT_FOCUS, 16000)
-FOCUSER.set(Focuser.OPT_ZOOM, 3000)
-FOCUSER.set(Focuser.OPT_MOTOR_X, 0)
-FOCUSER.set(Focuser.OPT_MOTOR_Y, 0)
-
 info = {
     'CRAWL': '',
     'GRIP': '', 
@@ -292,6 +285,13 @@ def video_3_start():
     vid_stream_3.serve_forever()
 
 if __name__ == '__main__':
+
+    FOCUSER = Focuser(1)
+    FOCUSER.set(Focuser.OPT_FOCUS, 16000)
+    FOCUSER.set(Focuser.OPT_ZOOM, 3000)
+    FOCUSER.set(Focuser.OPT_MOTOR_X, 0)
+    FOCUSER.set(Focuser.OPT_MOTOR_Y, 0)
+
     capture_0 = cv2.VideoCapture(0)
     capture_0.set(cv2.CAP_PROP_FRAME_WIDTH,320)
     capture_0.set(cv2.CAP_PROP_FRAME_HEIGHT,240)

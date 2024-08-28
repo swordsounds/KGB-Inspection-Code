@@ -1,12 +1,11 @@
 import socket, pickle, pygame, time # type: ignore
+from config import *
 
 pygame.init()
 
 server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
 
-SERVER = '192.168.0.19'
-CMDPORT = 8000 
 
 info = {
         "CRAWL": '',
@@ -37,7 +36,7 @@ def controller(info):
                 if event.type == pygame.JOYBUTTONUP:
                     info['CRAWL'] = 'STOP'
                     x_as_bytes = pickle.dumps(info)
-                    server.sendto((x_as_bytes), (SERVER, CMDPORT))
+                    server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
 
                 if event.type == pygame.JOYDEVICEADDED:
                     joy = pygame.joystick.Joystick(event.device_index)
@@ -58,32 +57,32 @@ def controller(info):
                 x_axis_value_left = round(joystick.get_axis(0), 1)
                 y_axis_value_left = round(joystick.get_axis(1), 1)
 
-                x_axis_value_right = round(joystick.get_axis(2), 1)
-                y_axis_value_right = round(joystick.get_axis(3), 1)
+                x_axis_value_right = round(joystick.get_axis(3), 1)
+                y_axis_value_right = round(joystick.get_axis(4), 1)
 
                 if x_axis_value_left == 1:
                     info['PTZ_MOVEMENT'] = ''
                     info['CRAWL'] = 'RIGHT'
                     x_as_bytes = pickle.dumps(info)
-                    server.sendto((x_as_bytes), (SERVER, CMDPORT))
+                    server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
 
                 elif x_axis_value_left == -1:
                     info['PTZ_MOVEMENT'] = ''
                     info['CRAWL'] = 'LEFT'
                     x_as_bytes = pickle.dumps(info)
-                    server.sendto((x_as_bytes), (SERVER, CMDPORT))
+                    server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
 
                 elif y_axis_value_left == -1:
                     info['PTZ_MOVEMENT'] = ''
                     info['CRAWL'] = 'FORW'
                     x_as_bytes = pickle.dumps(info)
-                    server.sendto((x_as_bytes), (SERVER, CMDPORT))
+                    server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
                 
                 elif y_axis_value_left == 1:
                     info['PTZ_MOVEMENT'] = ''
                     info['CRAWL'] = 'BACK'
                     x_as_bytes = pickle.dumps(info)
-                    server.sendto((x_as_bytes), (SERVER, CMDPORT))
+                    server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
                     
 
 
@@ -91,25 +90,25 @@ def controller(info):
                     info['CRAWL'] = 'STOP'
                     info['PTZ_MOVEMENT'] = 'RIGHT'
                     x_as_bytes = pickle.dumps(info)
-                    server.sendto((x_as_bytes), (SERVER, CMDPORT))
+                    server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
 
                 elif x_axis_value_right == -1:
                     info['CRAWL'] = 'STOP'
                     info['PTZ_MOVEMENT'] = 'LEFT'
                     x_as_bytes = pickle.dumps(info)
-                    server.sendto((x_as_bytes), (SERVER, CMDPORT))
+                    server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
 
                 elif y_axis_value_right == -1:
                     info['CRAWL'] = 'STOP'
                     info['PTZ_MOVEMENT'] = 'UP'
                     x_as_bytes = pickle.dumps(info)
-                    server.sendto((x_as_bytes), (SERVER, CMDPORT))
+                    server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
                 
                 elif y_axis_value_right == 1:
                     info['CRAWL'] = 'STOP'
                     info['PTZ_MOVEMENT'] = 'DOWN'
                     x_as_bytes = pickle.dumps(info)
-                    server.sendto((x_as_bytes), (SERVER, CMDPORT))
+                    server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
 
                 # for buttons in range(0, 4):
                     

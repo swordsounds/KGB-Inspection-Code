@@ -5,13 +5,7 @@ import uuid
 import multiprocessing
 import socket, pickle
 
-SERVER_CRAWLER = '192.168.0.19' #change ip to static ip in prod
-CMDPORT = 8000 
-
-# SERVER_CONTROL_BOX = '192.168.0.23' #change ip in prod
-SERVER_CONTROL_BOX = '192.168.0.10' # Enter CONTROL BOX address
-# SERVER_CONTROL_BOX = '192.168.0.26' # Enter CONTROL BOX address
-CTRLBXPORT_1 = 11000
+from config import *
 
 server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
@@ -245,8 +239,11 @@ class PTZButtonGroup(customtkinter.CTkFrame):
         server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
 
     def zoom_and_focus_change(self):
-        self.focus.set(int(info_to_control.value['FOCUS']))
-        self.zoom.set(int(info_to_control.value['ZOOM']))
+        try:
+            self.focus.set(int(info_to_control.value['FOCUS']))
+            self.zoom.set(int(info_to_control.value['ZOOM']))
+        except Exception as e:
+            print(e)
         self.after(3000, self.zoom_and_focus_change)
 
 class App(customtkinter.CTk):

@@ -6,25 +6,18 @@ import uuid
 import multiprocessing
 import socket, pickle
 
-# from gpiozero import Motor # type: ignore
+from gpiozero import Motor # type: ignore
 
+from config import *
 
 # TODO: Might need to switch the numbers around
 
-# TETH_MTR = Motor(13, 6)
-
-SERVER_CRAWLER = '192.168.0.19' 
-CMDPORT = 8000 
-
-# SERVER_CONTROL_BOX = '192.168.0.23' #change ip in prod
-SERVER_CONTROL_BOX = '192.168.0.10' # Enter CONTROL BOX address
-# SERVER_CONTROL_BOX = '192.168.0.26' # Enter CONTROL BOX address
-CTRLBXPORT_0 = 10000
+TETH_MTR = Motor(forward=4, backward=14)
 
 server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
 
-def server_listener_start(info_to_control):
+def server_listener_start(info_to_control, SERVER_CONTROL_BOX, CTRLBXPORT_0):
     server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
     server.bind((SERVER_CONTROL_BOX, CTRLBXPORT_0))
@@ -99,16 +92,22 @@ class TetherButtonGroup(customtkinter.CTkFrame):
 
     # TODO: Control box side, GPIO pin, make this work
     def tether_extend(self):  
-        pass
-        # TETH_MTR.forward()
+        global fwr
+        TETH_MTR.forward()
+        fwr = self.after(5, self.tether_extend)
         
     def tether_stop(self):
-        pass
-        # TETH_MTR.stop()
+        TETH_MTR.stop()
+        try:
+            self.after_cancel(fwr)
+            self.after_cancel(bck)
+        except Exception as e:
+            print(e)
     
     def tether_retract(self):
-        pass
-        # TETH_MTR.backward()
+        global bck
+        TETH_MTR.backward()
+        bck = self.after(5, self.tether_retract)
 
 class MovementButtonGroup(customtkinter.CTkFrame):
 
@@ -184,14 +183,23 @@ class MovementButtonGroup(customtkinter.CTkFrame):
         server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
 
     def position_change(self):
-        if info_to_control.value['DIRECTION'] == 'FORW':
-            # TETH_MTR.forward()
-            self.meters += 0.01
-        elif info_to_control.value['DIRECTION'] == 'BACK':
-            # TETH_MTR.backward()
-            self.meters -= 0.01
+        if info_to_control.value['DIRECTION'] == 'FORW': 
+            self.meters += 0.0136
+            if round(self.meters, 0) % 2 == 0:
+                TETH_MTR.forward()
+            else:
+                TETH_MTR.stop()
 
-        # TETH_MTR.stop()
+        elif info_to_control.value['DIRECTION'] == 'BACK':
+            self.meters -= 0.0136
+            if round(self.meters, 0) % 2 == 0:
+                TETH_MTR.backward()
+            else:
+                TETH_MTR.stop()
+
+        else:
+            TETH_MTR.stop()
+           
         self.distance.delete("0.0", "end")
         self.distance.insert("0.0", f'{round(self.meters, 2)} m')
         self.after(250, self.position_change)
@@ -401,7 +409,7 @@ class App(customtkinter.CTk):
 
 if __name__ == "__main__":
     info_to_control = multiprocessing.Manager().Value('i', {'DIRECTION': ''})
-    t = multiprocessing.Process(target=server_listener_start, args=(info_to_control,))
+    t = multiprocessing.Process(target=server_listener_start, args=(info_to_control, SERVER_CONTROL_BOX, CTRLBXPORT_0, ))
     app = App()
     t.start()
     app.mainloop()
