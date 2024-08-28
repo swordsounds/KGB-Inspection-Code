@@ -1,26 +1,9 @@
-import time, cv2, socket, pickle, csv, os # type: ignore
-from gpiozero import Robot, Motor # type: ignore
-from multiprocessing import Process
-from libcamera import controls # type: ignore
-from picamera2 import Picamera2 # type: ignore
-from http import server
-import socketserver
-import logging
-from Focuser import Focuser # type: ignore
-from Autofocus import AutoFocus # type: ignore
-
 from config import *
 
-info = {
-    'CRAWL': '',
-    'GRIP': '', 
-    'ARM': '',
-    'ARDU_CAMERA': '', 
-    'IR_CUT': '',
-    'PTZ_ZOOM': '', 
-    'PTZ_FOCUS': '', 
-    'PTZ_MOVEMENT': ''
-}
+
+
+from http import server
+import socketserver, logging
 
 class Streamer(socketserver.ThreadingMixIn, server.HTTPServer):
     allow_reuse_address = True
@@ -75,9 +58,15 @@ class StreamProps(server.BaseHTTPRequestHandler):
             self.send_error(404)
             self.end_headers()
 
+
+
+
+import time, cv2, socket, pickle, csv, os # type: ignore
+from gpiozero import Robot, Motor # type: ignore
+
 def server_listener_start():
         '''
-        DEFINE ALL SERVOS, MOTORS, ETC IN ACCOCIATED PROCESS
+        DEFINE ALL SERVOS, MOTORS, ETC IN ACCOCIATED FUNCTION
 
         As its a multiprocess
 
@@ -233,6 +222,11 @@ def server_listener_start():
         except Exception as e:
             print(e)
 
+
+
+from libcamera import controls # type: ignore
+from picamera2 import Picamera2 # type: ignore
+
 def video_0_start():
     ardu_cam = Picamera2(0)
     ardu_cam.preview_configuration.main.size=(1280,720) #full screen : 3280 2464, 1920x1080 for 1, 2464x1736 for 0
@@ -284,8 +278,25 @@ def video_3_start():
 
     vid_stream_3.serve_forever()
 
-if __name__ == '__main__':
 
+
+from Focuser import Focuser # type: ignore
+from Autofocus import AutoFocus # type: ignore
+from multiprocessing import Process
+
+if __name__ == '__main__':
+    
+    info = {
+    'CRAWL': '',
+    'GRIP': '', 
+    'ARM': '',
+    'ARDU_CAMERA': '', 
+    'IR_CUT': '',
+    'PTZ_ZOOM': '', 
+    'PTZ_FOCUS': '', 
+    'PTZ_MOVEMENT': ''
+    }
+    
     FOCUSER = Focuser(1)
     FOCUSER.set(Focuser.OPT_FOCUS, 16000)
     FOCUSER.set(Focuser.OPT_ZOOM, 3000)
