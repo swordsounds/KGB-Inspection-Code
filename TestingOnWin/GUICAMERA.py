@@ -1,37 +1,40 @@
-import cv2, tkinter as tk, customtkinter # type: ignore
-from PIL import Image, ImageTk # type: ignore
-import uuid
-
-import multiprocessing
+from config import *
 import socket, pickle
 
-from config import *
-
-server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
-
 def server_listener_start(info_to_control):
+
     server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
     server.bind((SERVER_CONTROL_BOX, CTRLBXPORT_1))
     temp = {}
+
     try:
+
         while True:
+
             data_from_crawler = server.recvfrom(2048)
             data_from_crawler = data_from_crawler[0]
             data = pickle.loads(data_from_crawler) 
+
             for key, value in data.items():
                 temp[key] = value
+
             info_to_control.value = temp
+
     except Exception as e:
         print(e)
 
+
+
+
+
+import cv2, uuid # type: ignore
+
 class VideoCaptureDevice:
-    #highest res on pi is 1280, 720 using usb
-    
 
     def __init__(self, video_link):
-        self.vid = cv2.VideoCapture(video_link) #change ip in prod 192.168.0.19
+        # self.vid = cv2.VideoCapture(video_link) 
+        self.vid = cv2.VideoCapture(None) 
         self.rec = None
 
     def get_frame(self) -> tuple[bool, list[int]]:
@@ -42,7 +45,7 @@ class VideoCaptureDevice:
         return (ret, cv2.cvtColor(resized, cv2.COLOR_BGR2RGB))
     
     def get_rec(self) -> object:
-        unique_id = str(uuid.uuid4()).split('-')[0] #test code TEST THIS
+        unique_id = str(uuid.uuid4()).split('-')[0] 
         file_name = f"{unique_id}.avi"
         fourcc = cv2.VideoWriter_fourcc(*'FMP4')#*'FMP4'
         fps = 10.0
@@ -53,7 +56,7 @@ class VideoCaptureDevice:
     def get_pic(self) -> None:
         ret, frame = self.vid.read()
         if ret:
-            unique_id = str(uuid.uuid4()).split('-')[0] #test code TEST THIS
+            unique_id = str(uuid.uuid4()).split('-')[0] 
             cv2.imwrite(f"{unique_id}.png", frame)
 
     def __del__(self) -> None:
@@ -63,6 +66,13 @@ class VideoCaptureDevice:
                 self.rec.release()
             except Exception as e:
                 print(e)
+
+
+
+
+
+import tkinter as tk, customtkinter # type: ignore
+from PIL import Image, ImageTk # type: ignore
 
 class CameraButtonGroup(customtkinter.CTkFrame):
     def __init__(self, master):
@@ -116,6 +126,10 @@ class CameraButtonGroup(customtkinter.CTkFrame):
         info_to_crawler = {'ARDU_CAMERA': 'RESET'}
         x_as_bytes = pickle.dumps(info_to_crawler)
         server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
+
+
+
+
 
 class PTZButtonGroup(customtkinter.CTkFrame):
     def __init__(self, master):
@@ -239,12 +253,20 @@ class PTZButtonGroup(customtkinter.CTkFrame):
         server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
 
     def zoom_and_focus_change(self):
+
         try:
+
             self.focus.set(int(info_to_control.value['FOCUS']))
             self.zoom.set(int(info_to_control.value['ZOOM']))
+
         except Exception as e:
             print(e)
+
         self.after(3000, self.zoom_and_focus_change)
+
+
+
+
 
 class App(customtkinter.CTk):
 
@@ -258,7 +280,6 @@ class App(customtkinter.CTk):
 
         width = self.winfo_screenwidth()
         height = self.winfo_screenheight()
-        # self.geometry("{}x{}-{}+0".format(width, height, width + 8)) # added 8 pixels translation due to weird scaling :/
         self.geometry("{}x{}+0+0".format(width, height)) # added 8 pixels translation due to weird scaling :/
         self.title("Video Panel")
         self.wm_iconbitmap(default=None)
@@ -271,7 +292,7 @@ class App(customtkinter.CTk):
         logo = customtkinter.CTkLabel(self, text="", image=kgb_logo)
         logo.grid(row=5, column=9, sticky="ne")
 
-        # 9  x9 grid system
+        # 9x9 grid system
 
         self.grid_rowconfigure(tuple(range(10)), weight=1)
         self.grid_columnconfigure(tuple(range(10)), weight=1)
@@ -317,6 +338,7 @@ class App(customtkinter.CTk):
         self.combobox.grid(row=2, column=0, pady=(200, 0), ipadx=10,sticky="ne")
 
         # video device 
+
         self.vid = VideoCaptureDevice('http://192.168.0.19:9000/stream.mjpg')
         self.canvas = tk.Canvas(self, width=1080, height=0, bg='#242424', highlightthickness=0) #adjusted height by -95px to remove whitespace :/
         self.canvas.grid(row=1, column=1, rowspan=3, columnspan=9,padx=20, pady=20,sticky="nsew")
@@ -327,22 +349,32 @@ class App(customtkinter.CTk):
         self.info_reset()
 
     def combobox_callback(self, choice):
+
         if choice == 'PTZ Cam.':
+
             self.vid = VideoCaptureDevice('http://192.168.0.19:9100/stream.mjpg') 
 
         elif choice == 'ARDUCam.':
+
             self.vid = VideoCaptureDevice('http://192.168.0.19:9000/stream.mjpg')
             
         elif choice == 'Rear Cam.':
+
             self.vid = VideoCaptureDevice('http://192.168.0.19:9300/stream.mjpg')
 
     def video_update(self):
+
         try:
-            ret, frame = self.vid.get_frame()        
+
+            ret, frame = self.vid.get_frame()
+
             if ret:
+
                 self.photo = ImageTk.PhotoImage(image=Image.fromarray(frame))
                 self.canvas.create_image(100, 0, image=self.photo, anchor=tk.NW)  
+
             self.after(15, self.video_update)
+            
         except Exception as e:
             print(e)
 
@@ -361,10 +393,10 @@ class App(customtkinter.CTk):
         self.vid.get_pic()
 
     def max_window(self):
-        self.geometry("{}x{}-{}+0".format(1920, 1080, 1928))
+        self.geometry("{}x{}".format(1920, 1080))
         
     def mini_window(self):
-        self.geometry("{}x{}-{}+0".format(300, 300, 1925))
+        self.geometry("{}x{}".format(300, 300))
     
     def close_window(self):
         self.destroy()
@@ -375,7 +407,17 @@ class App(customtkinter.CTk):
         server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
         self.after(50, self.info_reset)
 
+
+
+
+
+import multiprocessing
+
 if __name__ == "__main__":
+
+    server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
+
     info_to_control = multiprocessing.Manager().Value('i', {'FOCUS': 0, 'ZOOM': 0})
     t = multiprocessing.Process(target=server_listener_start, args=(info_to_control,))
     app = App()

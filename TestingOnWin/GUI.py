@@ -1,78 +1,89 @@
-import cv2, tkinter as tk, customtkinter # type: ignore
-from PIL import Image, ImageTk # type: ignore
-from datetime import datetime
-import uuid
-
-import multiprocessing
+from config import *
 import socket, pickle
 
-from gpiozero import Motor # type: ignore
-
-from config import *
-
-# TODO: Might need to switch the numbers around
-
-TETH_MTR = Motor(forward=4, backward=14)
-
-server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
-
 def server_listener_start(info_to_control, SERVER_CONTROL_BOX, CTRLBXPORT_0):
+
     server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
     server.bind((SERVER_CONTROL_BOX, CTRLBXPORT_0))
+
     try:
+
         while True:
+
             data_from_crawler = server.recvfrom(2048)
             data_from_crawler = data_from_crawler[0]
             data = pickle.loads(data_from_crawler)  
             info_to_control.value = data
+
     except Exception as e:
         print(e)
 
+
+
+
+
+import cv2, uuid # type: ignore
+
 class VideoCaptureDevice:
-    #highest res on pi is 1280, 720 using usb
+
     def __init__(self):
-        self.vid = cv2.VideoCapture('http://192.168.0.19:9200/stream.mjpg') #change ip in prod 192.168.0.19
-        # self.vid = cv2.VideoCapture(None)
+        
+        self.vid = cv2.VideoCapture(None)
         self.rec = None
 
-    def get_frame(self) -> tuple[bool, list[int]]:
+    def get_frame(self):
+
         ret, frame = self.vid.read()
+
         if rec_toggle:
                 self.rec.write(frame)
+
         resized = cv2.resize(frame, video_screen_dim, interpolation=cv2.INTER_AREA)
         return (ret, cv2.cvtColor(resized, cv2.COLOR_BGR2RGB))
     
-    def get_rec(self) -> object:
+    def get_rec(self):
+
         unique_id = str(uuid.uuid4()).split('-')[0]
         file_name = f"{unique_id}.avi"
         fourcc = cv2.VideoWriter_fourcc(*'FMP4')
         fps = 10.0
-        # res = (640, 480)
+
         self.rec = cv2.VideoWriter(file_name, fourcc, fps, video_screen_dim)
         return self.rec
 
-    def get_pic(self) -> None:
+    def get_pic(self):
+
         ret, frame = self.vid.read()
+
         if ret:
-            unique_id = str(uuid.uuid4()).split('-')[0] #test code TEST THIS
+            unique_id = str(uuid.uuid4()).split('-')[0]
             cv2.imwrite(f"{unique_id}.png", frame)
     
-    def __del__(self) -> None:
+    def __del__(self):
+
         if self.vid.isOpened():
+
             try:
+
                 self.vid.release()
                 self.rec.release()
+
             except Exception as e:
                 print(e)
+
+
+
+
+
+import tkinter as tk, customtkinter # type: ignore
+from PIL import Image, ImageTk # type: ignore
+from datetime import datetime
 
 class TetherButtonGroup(customtkinter.CTkFrame):
 
     def __init__(self, master):
         super().__init__(master)
-
-        self.extend = 0 # test code REMOVE
 
         # tether buttons
         self.grid_rowconfigure(tuple(range(9)), weight=1)
@@ -91,28 +102,38 @@ class TetherButtonGroup(customtkinter.CTkFrame):
         self.button.grid(row=1, column=2, padx=20, pady=20)
 
     # TODO: Control box side, GPIO pin, make this work
+    
     def tether_extend(self):  
         global fwr
-        TETH_MTR.forward()
+        # TETH_MTR.forward()
         fwr = self.after(5, self.tether_extend)
-        
-    def tether_stop(self):
-        TETH_MTR.stop()
-        try:
-            self.after_cancel(fwr)
-            self.after_cancel(bck)
-        except Exception as e:
-            print(e)
-    
+
     def tether_retract(self):
         global bck
-        TETH_MTR.backward()
+        # TETH_MTR.backward()
         bck = self.after(5, self.tether_retract)
+
+    def tether_stop(self):
+        
+        # TETH_MTR.stop()
+
+        try:
+
+            self.after_cancel(fwr)
+            self.after_cancel(bck)
+
+        except Exception as e:
+            print(e)
+
+
+
+
 
 class MovementButtonGroup(customtkinter.CTkFrame):
 
     meters = 0
     current_distance = 0
+
     def __init__(self, master):
         super().__init__(master)
 
@@ -183,28 +204,44 @@ class MovementButtonGroup(customtkinter.CTkFrame):
         server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
 
     def position_change(self):
+
         if info_to_control.value['DIRECTION'] == 'FORW': 
             self.meters += 0.0136
+
             if round(self.meters, 0) % 2 == 0:
-                TETH_MTR.forward()
+                pass
+                # TETH_MTR.forward()
+
             else:
-                TETH_MTR.stop()
+                pass
+                # TETH_MTR.stop()
 
         elif info_to_control.value['DIRECTION'] == 'BACK':
+
             self.meters -= 0.0136
+
             if round(self.meters, 0) % 2 == 0:
-                TETH_MTR.backward()
+                pass
+                # TETH_MTR.backward()
+
             else:
-                TETH_MTR.stop()
+                pass
+                # TETH_MTR.stop()
 
         else:
-            TETH_MTR.stop()
+            pass
+            # TETH_MTR.stop()
            
         self.distance.delete("0.0", "end")
         self.distance.insert("0.0", f'{round(self.meters, 2)} m')
         self.after(250, self.position_change)
 
+
+
+
+
 class GripperButtonGroup(customtkinter.CTkFrame):
+
     def __init__(self, master):
         super().__init__(master)
 
@@ -245,7 +282,12 @@ class GripperButtonGroup(customtkinter.CTkFrame):
         x_as_bytes = pickle.dumps(info_to_crawler)
         server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
 
+
+
+
+
 class ArmButtonGroup(customtkinter.CTkFrame):
+
     def __init__(self, master):
         super().__init__(master)
 
@@ -270,10 +312,13 @@ class ArmButtonGroup(customtkinter.CTkFrame):
         info_to_crawler = {'ARM': 'RETR'}
         x_as_bytes = pickle.dumps(info_to_crawler)
         server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
-      
+
+
+
+
+
 class App(customtkinter.CTk):
 
-    customtkinter.set_appearance_mode("dark")
     global rec_toggle, video_screen_dim
     rec_toggle = False
     video_screen_dim = (960, 540)
@@ -281,6 +326,7 @@ class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
 
+        customtkinter.set_appearance_mode("dark")
         width = self.winfo_screenwidth()
         height = self.winfo_screenheight()
         self.geometry("{}x{}".format(width, height)) 
@@ -363,12 +409,17 @@ class App(customtkinter.CTk):
         self.info_reset()
  
     def video_update(self):
+
         try:
-            ret, frame = self.vid.get_frame()        
+
+            ret, frame = self.vid.get_frame()  
+
             if ret:
+                    
                     self.photo = ImageTk.PhotoImage(image= Image.fromarray(frame))
                     self.canvas.create_image(100, 0, image=self.photo, anchor=tk.NW)  
             self.after(15, self.video_update)
+
         except Exception as e:
             print(e)
 
@@ -407,9 +458,25 @@ class App(customtkinter.CTk):
         server.sendto((x_as_bytes), (SERVER_CRAWLER, CMDPORT))
         self.after(50, self.info_reset)
 
+
+
+
+
+import multiprocessing
+from gpiozero import Motor # type: ignore
+'''
+    Uncomment TETH_MTR and remove pass when in use with GPIO.
+'''
 if __name__ == "__main__":
+    # TODO: Might need to switch the numbers around
+
+    # TETH_MTR = Motor(forward=4, backward=14)
+
+    server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
+
     info_to_control = multiprocessing.Manager().Value('i', {'DIRECTION': ''})
-    t = multiprocessing.Process(target=server_listener_start, args=(info_to_control, SERVER_CONTROL_BOX, CTRLBXPORT_0, ))
+    server_listener_init = multiprocessing.Process(target=server_listener_start, args=(info_to_control, SERVER_CONTROL_BOX, CTRLBXPORT_0, ))
     app = App()
-    t.start()
+    server_listener_init.start()
     app.mainloop()

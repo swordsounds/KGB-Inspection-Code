@@ -1,7 +1,4 @@
 from config import *
-
-
-
 from http import server
 import socketserver, logging
 
