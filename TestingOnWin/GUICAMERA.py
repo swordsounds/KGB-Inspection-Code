@@ -1,7 +1,7 @@
 from config import *
 import socket, pickle
 
-def server_listener_start(info_to_control):
+def server_listener_start(info_to_control, SERVER_CONTROL_BOX, CTRLBXPORT_1):
 
     server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
@@ -54,16 +54,23 @@ class VideoCaptureDevice:
         return self.rec
 
     def get_pic(self) -> None:
+
         ret, frame = self.vid.read()
+
         if ret:
+
             unique_id = str(uuid.uuid4()).split('-')[0] 
             cv2.imwrite(f"{unique_id}.png", frame)
 
     def __del__(self) -> None:
+
         if self.vid.isOpened():
+
             try:
+
                 self.vid.release()
                 self.rec.release()
+
             except Exception as e:
                 print(e)
 
@@ -75,6 +82,7 @@ import tkinter as tk, customtkinter # type: ignore
 from PIL import Image, ImageTk # type: ignore
 
 class CameraButtonGroup(customtkinter.CTkFrame):
+
     def __init__(self, master):
         super().__init__(master)
 
@@ -132,6 +140,7 @@ class CameraButtonGroup(customtkinter.CTkFrame):
 
 
 class PTZButtonGroup(customtkinter.CTkFrame):
+
     def __init__(self, master):
         super().__init__(master)
 
@@ -374,7 +383,7 @@ class App(customtkinter.CTk):
                 self.canvas.create_image(100, 0, image=self.photo, anchor=tk.NW)  
 
             self.after(15, self.video_update)
-            
+
         except Exception as e:
             print(e)
 
@@ -419,7 +428,7 @@ if __name__ == "__main__":
     server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
 
     info_to_control = multiprocessing.Manager().Value('i', {'FOCUS': 0, 'ZOOM': 0})
-    t = multiprocessing.Process(target=server_listener_start, args=(info_to_control,))
+    server_listener_init = multiprocessing.Process(target=server_listener_start, args=(info_to_control, SERVER_CONTROL_BOX, CTRLBXPORT_1,))
     app = App()
-    t.start()
+    server_listener_init.start()
     app.mainloop()
