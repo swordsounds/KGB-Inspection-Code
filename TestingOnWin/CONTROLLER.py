@@ -121,6 +121,10 @@ def controller(info):
                 #     hat = joystick.get_hat(i)
                 #     print(f"Hat {i} value: {str(hat)}")
 
+
+
+
+
 if __name__ == "__main__":
     pygame.init()
 
